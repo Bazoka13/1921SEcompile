@@ -43,10 +43,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
             int tmp = (new BigInteger(ctx.DECIMAL_CONST().getText(),10).intValue());
             System.out.print(tmp);
         }else if(ctx.OCTAL_CONST()!=null){
-            int tmp = (new BigInteger(ctx.DECIMAL_CONST().getText(),8).intValue());
+            int tmp = (new BigInteger(ctx.OCTAL_CONST().getText(),8).intValue());
             System.out.print(tmp);
         }else if(ctx.HEXADECIMAL_CONST()!=null){
-            int tmp = (new BigInteger(ctx.DECIMAL_CONST().getText().substring(2),16).intValue());
+            int tmp = (new BigInteger(ctx.HEXADECIMAL_CONST().getText().substring(2),16).intValue());
             System.out.print(tmp);
         }
         return null;
