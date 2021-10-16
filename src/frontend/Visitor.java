@@ -45,7 +45,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }else if(ctx.OCTAL_CONST()!=null){
             int tmp = (new BigInteger(ctx.DECIMAL_CONST().getText(),8).intValue());
             System.out.print(tmp);
-        }else{
+        }else if(ctx.HEXADECIMAL_CONST()!=null){
             int tmp = (new BigInteger(ctx.DECIMAL_CONST().getText().substring(2),16).intValue());
             System.out.print(tmp);
         }
