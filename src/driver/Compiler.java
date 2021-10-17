@@ -14,7 +14,10 @@ import io.*;
 
 public class Compiler {
     public static void solve(String[] code) throws IOException {
-        String s = IOUtils.readFromStream(System.in);
+        //String s = IOUtils.readFromStream(System.in);
+        String s = new String("int main(){\n" +
+                "    return 0x32;\n" +
+                "}");
         CharStream input = CharStreams.fromString(s);
         errorListener el = new errorListener();
         sysyLexer lexer = new sysyLexer(input);
