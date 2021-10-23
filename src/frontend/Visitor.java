@@ -103,10 +103,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
             if(i==0)tmp=sonAns;
             else{
                 if(ctx.mulOp(i-1).DIV()!=null){
-                    //if(sonAns==0)System.exit(-1);
+                    if(sonAns==0)System.exit(-1);
                     tmp=tmp/sonAns;
                 }else if (ctx.mulOp(i-1).MOD()!=null){
-                    //if(sonAns==0)System.exit(-1);
+                    if(sonAns==0)System.exit(-1);
                     tmp=tmp%sonAns;
                 }else if(ctx.mulOp(i-1).MUL()!=null){
                     tmp=tmp*sonAns;
