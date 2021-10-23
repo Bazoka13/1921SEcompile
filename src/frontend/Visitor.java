@@ -71,7 +71,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         return super.visitStmt(ctx);
     }
     @Override public Void visitReturnStmt(sysyParser.ReturnStmtContext ctx) {
-        System.out.print("ret ");
+        System.out.print("ret i32 ");
         visitExp(ctx.exp());
         System.out.print(sonAns);
         return null;
