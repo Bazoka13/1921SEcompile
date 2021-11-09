@@ -11,12 +11,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private int num=0;//getMpId的自增长ID
     private int now;//当前visit函数的ID
     private boolean sonIsRam;
+    private boolean isConst;//当前求值是否是常量
     private HashMap<String,Integer> getMpId = new HashMap<>();//注意-1 ，每个函数对应HashMap在下面两个List的位置
     private List<HashMap<String, String>> idToAd = new ArrayList<>();//标识符到寄存器的映射
     private ArrayList<ArrayList<String>> tmpRam= new ArrayList<>();//每个函数的所有寄存器
     private ArrayList<ArrayList<String>> needAllocaRam = new ArrayList<>();//每个函数需要alloca的寄存器
     private ArrayList<ArrayList<String>> irList = new ArrayList<>();//每个函数的所有ir
     private ArrayList<ArrayList<String>> defList = new ArrayList<>();//每个block
+    private ArrayList<HashMap<String,Integer>> constList = new ArrayList<>();//存放常量
     private ArrayList<HashMap<String,String>> randRam=new ArrayList<>();
     private void addIR(String s){
         int tmp=now-1;
@@ -85,6 +87,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             irList.add(new ArrayList<String>());
             idToAd.add(new HashMap<String,String>());
             randRam.add(new HashMap<String,String>());
+            constList.add(new HashMap<String,Integer>());
         }
         try {
             visitFuncType(ctx.funcType());
@@ -127,6 +130,20 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         return null;
     }
+   @Override public Void visitConstDef(sysyParser.ConstDefContext ctx) {
+        sonIsRam=false;
+       visitConstInitVal(ctx.constInitVal());
+       if(sonIsRam)System.exit(-10);
+       else{
+           Integer tmp=sonAns;
+           constList.get(now-1).put(ctx.IDENT().getText(),sonAns);
+       }
+       return null;
+   }
+    /*@Override public Void visitConstInitVal(sysyParser.ConstInitValContext ctx) {
+
+       return null;
+   }*/
     @Override public Void visitVarDecl(sysyParser.VarDeclContext ctx){
         int n=ctx.varDef().size();
         for(int i=0;i<n;i++){
@@ -137,7 +154,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitVarDef(sysyParser.VarDefContext ctx) {
         String nowVar=ctx.IDENT().getText();
         HashMap<String,String> nowMap=idToAd.get(now-1);
-        if(nowMap.containsKey(nowVar))System.exit(-1);
+        if(nowMap.containsKey(nowVar));//System.exit(-1);
         else{
             String newRam = randomRam();
             nowMap.put(nowVar,newRam);
@@ -164,7 +181,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             }else{
                 addIR("store i32 "+sonAns+" , i32 *"+nowRam+"\n");
             }
-        }else System.exit(-1);
+        }else System.exit(-2);
         return null;
     }
     @Override public Void visitReturnStmt(sysyParser.ReturnStmtContext ctx) {
@@ -191,6 +208,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     fl = 1;
                     tmp = sonAns;
                 }
+            }else{
+                    fls=1;
+                    preSon=sonRam;
             }
             if (i == 0) continue;
             if (ctx.addOp(i - 1).MINUS() != null) {
@@ -230,7 +250,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     }else tmp = tmp + sonAns;
                 }
             } else {
-                System.exit(-1);
+                System.exit(-5);
             }
         }
         if(preSon!="null"){
@@ -255,6 +275,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     fl=1;
                     tmp=sonAns;
                 }
+            }else{
+                fls=1;
+                preSon=sonRam;
             }
             if(i==0)continue;
             if (ctx.mulOp(i - 1).DIV() != null) {
@@ -312,7 +335,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     }else tmp = tmp * sonAns;
                 }
             } else {
-                System.exit(-1);
+                System.exit(-6);
             }
         }
         if(preSon!="null"){
@@ -343,15 +366,19 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitPrimaryExp(sysyParser.PrimaryExpContext ctx){
         if(ctx.lVal()!=null){
             if(idToAd.get(now-1).containsKey(ctx.lVal().IDENT().getText())){
+                if(isConst)System.exit(-54);
                 String tmpRam=idToAd.get(now-1).get(ctx.lVal().IDENT().getText());
                 String newRam =randomRam();
                 addIR(newRam+" = load i32, i32* "+tmpRam+"\n");
                 sonRam=newRam;
                 sonIsRam=true;
             }else{
-                /*sonRam=randomRam();
-                idToAd.get(now).put(ctx.lVal().getText(),sonRam);*/
-                System.exit(-1);
+                if(constList.get(now-1).containsKey(ctx.lVal().IDENT().getText())==false)
+                    System.exit(-3);
+                else{
+                    sonIsRam=false;
+                    sonAns=constList.get(now-1).get(ctx.lVal().IDENT().getText()).intValue();
+                }
             }
         }else if(ctx.number()!=null){
             sonIsRam=false;
