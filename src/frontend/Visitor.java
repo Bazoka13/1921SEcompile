@@ -202,12 +202,12 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         addIR(newSon+" = sub i32 "+tmp+" , "+sonRam+"\n");
                         continue;
                     }
-                    addIR(newSon+" = sub i32 "+preSon+sonRam+"\n");
+                    addIR(newSon+" = sub i32 "+preSon+" , "+sonRam+"\n");
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
                         String newSon=randomRam();
-                        addIR(newSon+" = sub i32 "+preSon+sonAns+"\n");
+                        addIR(newSon+" = sub i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp - sonAns;
                 }
@@ -220,12 +220,12 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         addIR(newSon+" = add i32 "+tmp+" , "+sonRam+"\n");
                         continue;
                     }
-                    addIR(newSon+" = add i32 "+preSon+sonRam+"\n");
+                    addIR(newSon+" = add i32 "+preSon+" , "+sonRam+"\n");
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
                         String newSon=randomRam();
-                        addIR(newSon+" = add i32 "+preSon+sonAns+"\n");
+                        addIR(newSon+" = add i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp + sonAns;
                 }
