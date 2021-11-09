@@ -137,7 +137,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitVarDef(sysyParser.VarDefContext ctx) {
         String nowVar=ctx.IDENT().getText();
         HashMap<String,String> nowMap=idToAd.get(now-1);
-        if(nowMap.containsKey(nowVar));//System.exit(-1);
+        if(nowMap.containsKey(nowVar))System.exit(-1);
         else{
             String newRam = randomRam();
             nowMap.put(nowVar,newRam);
@@ -164,7 +164,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             }else{
                 addIR("store i32 "+sonAns+" , i32 *"+nowRam+"\n");
             }
-        }
+        }else System.exit(-1);
         return null;
     }
     @Override public Void visitReturnStmt(sysyParser.ReturnStmtContext ctx) {
@@ -230,7 +230,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     }else tmp = tmp + sonAns;
                 }
             } else {
-               // System.exit(-1);
+                System.exit(-1);
             }
         }
         if(preSon!="null"){
@@ -312,7 +312,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     }else tmp = tmp * sonAns;
                 }
             } else {
-                //System.exit(-1);
+                System.exit(-1);
             }
         }
         if(preSon!="null"){
@@ -351,7 +351,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             }else{
                 /*sonRam=randomRam();
                 idToAd.get(now).put(ctx.lVal().getText(),sonRam);*/
-               // System.exit(-1);
+                System.exit(-1);
             }
         }else if(ctx.number()!=null){
             sonIsRam=false;
