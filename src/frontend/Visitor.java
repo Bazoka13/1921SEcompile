@@ -17,19 +17,30 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private ArrayList<ArrayList<String>> needAllocaRam = new ArrayList<>();//每个函数需要alloca的寄存器
     private ArrayList<ArrayList<String>> irList = new ArrayList<>();//每个函数的所有ir
     private ArrayList<ArrayList<String>> defList = new ArrayList<>();//每个block
+    private ArrayList<HashMap<String,String>> randRam=new ArrayList<>();
     private void addIR(String s){
         int tmp=now-1;
         irList.get(tmp).add(s);
     }//偷懒写个函数
-    private String randomRam(){
+    private String getRandRam(){
         Random df = new Random();
         int n=df.nextInt(10)+1;
         String str = "%";
         for (int i = 0; i < n; i++) {
             str = str + (char)(Math.random()*26+'a');
         }
+        df = new Random();
+        n=df.nextInt(20)+1;
         Integer i=n;
         return str+i.toString();
+    }
+    private String randomRam(){
+        String tmps=getRandRam();
+        while((randRam.get(now-1).containsKey(tmps))){
+            tmps=randomRam();
+        }
+        randRam.get(now-1).put(tmps,"null");
+        return tmps;
     }
     @Override public Void visitCompUnit(sysyParser.CompUnitContext ctx) {
         try {
@@ -73,6 +84,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             needAllocaRam.add(new ArrayList<String>());
             irList.add(new ArrayList<String>());
             idToAd.add(new HashMap<String,String>());
+            randRam.add(new HashMap<String,String>());
         }
         try {
             visitFuncType(ctx.funcType());
