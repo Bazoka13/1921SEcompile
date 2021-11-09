@@ -156,7 +156,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
             sonRam=newRam;
         }else if(Objects.equals(ctx.IDENT().getText(), "putint") || Objects.equals(ctx.IDENT().getText(), "putch")){
             if(ctx.funcRParams()==null)System.exit(-128);
-            System.out.println(ctx.funcRParams().param().size());
             if(ctx.funcRParams().param().size()!=1)System.exit(-124);
             if(ctx.funcRParams().param(0).STRING()!=null){
                 String s=ctx.funcRParams().param(0).STRING().getText();
