@@ -11,13 +11,12 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private int num=0;//getMpId的自增长ID
     private int now;//当前visit函数的ID
     private boolean sonIsRam;
-    private HashMap<String,Integer> iniAd = new HashMap<>();//每个函数的目前可用寄存器，自增长
     private HashMap<String,Integer> getMpId = new HashMap<>();//注意-1 ，每个函数对应HashMap在下面两个List的位置
     private List<HashMap<String, String>> idToAd = new ArrayList<>();//标识符到寄存器的映射
-    private List<HashMap<Integer,Integer>> adToVal = new ArrayList<>();//寄存器的value
-    private ArrayList<ArrayList<String>> tmpRam= new ArrayList<ArrayList<String>>();//每个函数的所有寄存器
-    private ArrayList<ArrayList<String>> needAllocaRam = new ArrayList<ArrayList<String>>();//每个函数需要alloca的寄存器
-    private ArrayList<ArrayList<String>> irList = new ArrayList<ArrayList<String>>();//每个函数的所有ir
+    private ArrayList<ArrayList<String>> tmpRam= new ArrayList<>();//每个函数的所有寄存器
+    private ArrayList<ArrayList<String>> needAllocaRam = new ArrayList<>();//每个函数需要alloca的寄存器
+    private ArrayList<ArrayList<String>> irList = new ArrayList<>();//每个函数的所有ir
+    private ArrayList<ArrayList<String>> defList = new ArrayList<>();//每个block
     private void addIR(String s){
         int tmp=now-1;
         irList.get(tmp).add(s);
@@ -40,11 +39,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 HashMap.Entry entry = (HashMap.Entry) ite.next();
                 Integer tmpi= (Integer) entry.getValue();
                 ArrayList<String> t=needAllocaRam.get(tmpi.intValue()-1);
+                ArrayList<String> tmps=irList.get(tmpi.intValue()-1);
+                System.out.print(tmps.get(0));
+                System.out.print(tmps.get(1));
                 for(String s:t){
                     System.out.println(s+" = alloca i32");
                 }
-                ArrayList<String> tmps=irList.get(tmpi.intValue()-1);
-                for(String s:tmps){
+                for(int i=2;i<tmps.size();i++){
+                    String s=tmps.get(i);
                     System.out.print(s);
                 }
             }
@@ -53,17 +55,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         return null;
     }
-    @Override public Void visitFuncType(sysyParser.FuncTypeContext ctx) {
+    @Override public Void visitFuncDef(sysyParser.FuncDefContext ctx) {
         String s = "define dso_local ";
-        if(ctx.INT_KW()!=null){
+        if(ctx.funcType().INT_KW()!=null){
             s+="i32 ";
-        }else if(ctx.VOID_KW()!=null){
+        }else if(ctx.funcType().VOID_KW()!=null){
             s+="i1 ";
         }
-        addIR(s);
-        return null;
-    }
-    @Override public Void visitFuncDef(sysyParser.FuncDefContext ctx) {
         String tmp = ctx.IDENT().getText();
         int pre=now;
         if(getMpId.containsKey(tmp)){
@@ -74,13 +72,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
             tmpRam.add(new ArrayList<String>());
             needAllocaRam.add(new ArrayList<String>());
             irList.add(new ArrayList<String>());
+            idToAd.add(new HashMap<String,String>());
         }
         try {
             visitFuncType(ctx.funcType());
         }catch (RecognitionException re){
             System.exit(-1);
         }
-        addIR('@'+ctx.IDENT().getText()+"()");
+        addIR(s+'@'+ctx.IDENT().getText()+"()");
         try {
             visitBlock(ctx.block());
         }catch (RecognitionException re){
@@ -116,17 +115,54 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         return null;
     }
-    @Override public Void visitStmt(sysyParser.StmtContext ctx) {
-
-        return super.visitStmt(ctx);
+    @Override public Void visitVarDecl(sysyParser.VarDeclContext ctx){
+        int n=ctx.varDef().size();
+        for(int i=0;i<n;i++){
+            visitVarDef(ctx.varDef(i));
+        }
+        return null;
+    }
+    @Override public Void visitVarDef(sysyParser.VarDefContext ctx) {
+        String nowVar=ctx.IDENT().getText();
+        HashMap<String,String> nowMap=idToAd.get(now-1);
+        if(nowMap.containsKey(nowVar))System.exit(-1);
+        else{
+            String newRam = randomRam();
+            nowMap.put(nowVar,newRam);
+            idToAd.set(now-1,nowMap);
+            needAllocaRam.get(now-1).add(newRam);
+            if(ctx.ASSIGN()!=null){
+                visitInitVal(ctx.initVal());
+                if(sonIsRam){
+                    addIR("store i32 "+sonRam+" , i32 *"+newRam+"\n");
+                }else{
+                    addIR("store i32 "+sonAns+" , i32 *"+newRam+"\n");
+                }
+            }
+        }
+        return null;
+    }
+    @Override public Void visitAssignStmt(sysyParser.AssignStmtContext ctx) {
+        String nowVar = ctx.lVal().IDENT().getText();
+        if(idToAd.get(now-1).containsKey(nowVar)){
+            String nowRam=idToAd.get(now-1).get(nowVar);
+            visitExp(ctx.exp());
+            if(sonIsRam){
+                addIR("store i32 "+sonRam+" , i32 *"+nowRam+"\n");
+            }else{
+                addIR("store i32 "+sonAns+" , i32 *"+nowRam+"\n");
+            }
+        }else System.exit(-1);
+        return null;
     }
     @Override public Void visitReturnStmt(sysyParser.ReturnStmtContext ctx) {
         //System.out.print("ret i32 ");
         visitExp(ctx.exp());
         //System.out.print(sonAns);
         addIR("ret i32 ");
-        if(sonIsRam)addIR(sonRam+'\n');
-        else addIR(sonAns+"\n");
+        Integer tmp=sonAns;
+        if(sonIsRam)addIR(sonRam+"\n");
+        else addIR(tmp.toString()+"\n");
         return null;
     }
     @Override public Void visitAddExp(sysyParser.AddExpContext ctx) {
@@ -143,36 +179,41 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     fl = 1;
                     tmp = sonAns;
                 }
-            } else {
-                if (fls == 0) {
-                    fls = 1;
-                    preSon = sonRam;
-                }
             }
             if (i == 0) continue;
             if (ctx.addOp(i - 1).MINUS() != null) {
                 if (sonIsRam) {
-                    if(preSon=="null")System.exit(-1);
                     String newSon=randomRam();
-                    addIR(newSon+" = sub i32 "+preSon+sonRam);
+                    if(fls==0){
+                        fls=1;
+                        preSon=sonRam;
+                        addIR(newSon+" = sub i32 "+tmp+" , "+sonRam+"\n");
+                        continue;
+                    }
+                    addIR(newSon+" = sub i32 "+preSon+sonRam+"\n");
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
                         String newSon=randomRam();
-                        addIR(newSon+" = sub i32 "+preSon+sonAns);
+                        addIR(newSon+" = sub i32 "+preSon+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp - sonAns;
                 }
             } else if (ctx.addOp(i - 1).PLUS() != null) {
                 if (sonIsRam) {
-                    if(preSon=="null")System.exit(-1);
                     String newSon=randomRam();
-                    addIR(newSon+" = add i32 "+preSon+sonRam);
+                    if(fls==0){
+                        fls=1;
+                        preSon=sonRam;
+                        addIR(newSon+" = add i32 "+tmp+" , "+sonRam+"\n");
+                        continue;
+                    }
+                    addIR(newSon+" = add i32 "+preSon+sonRam+"\n");
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
                         String newSon=randomRam();
-                        addIR(newSon+" = add i32 "+preSon+sonAns);
+                        addIR(newSon+" = add i32 "+preSon+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp + sonAns;
                 }
@@ -202,46 +243,59 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     fl=1;
                     tmp=sonAns;
                 }
-            }else{
-                if(fls==0){
-                    fls=1;
-                    preSon=sonRam;
-                }
             }
             if(i==0)continue;
             if (ctx.mulOp(i - 1).DIV() != null) {
                 if (sonIsRam) {
                     String newSon=randomRam();
-                    addIR(newSon+" = sdiv i32 "+preSon+sonRam);
+                    if(fls==0){
+                        fls=1;
+                        preSon=sonRam;
+                        addIR(newSon+" = sdiv i32 "+tmp+" , "+sonRam+"\n");
+                        continue;
+                    }
+                    addIR(newSon+" = sdiv i32 "+preSon+" , "+sonRam+"\n");
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
                         String newSon=randomRam();
-                        addIR(newSon+" = sdiv i32 "+preSon+sonAns);
+                        addIR(newSon+" = sdiv i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp / sonAns;
                 }
             } else if (ctx.mulOp(i - 1).MOD() != null) {
                 if (sonIsRam) {
                     String newSon=randomRam();
-                    addIR(newSon+" = srem i32 "+preSon+sonRam);
+                    if(fls==0){
+                        fls=1;
+                        preSon=sonRam;
+                        addIR(newSon+" = srem i32 "+tmp+" , "+sonRam+"\n");
+                        continue;
+                    }
+                    addIR(newSon+" = srem i32 "+preSon+" , "+sonRam+"\n");
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
                         String newSon=randomRam();
-                        addIR(newSon+" = srem i32 "+preSon+sonAns);
+                        addIR(newSon+" = srem i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp % sonAns;
                 }
             } else if (ctx.mulOp(i - 1).MUL() != null) {
                 if (sonIsRam) {
                     String newSon=randomRam();
-                    addIR(newSon+" = smul i32 "+preSon+sonRam);
+                    if(fls==0){
+                        fls=1;
+                        preSon=sonRam;
+                        addIR(newSon+" = smul i32 "+tmp+" , "+sonRam+"\n");
+                        continue;
+                    }
+                    addIR(newSon+" = smul i32 "+preSon+" , "+sonRam+"\n");
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
                         String newSon=randomRam();
-                        addIR(newSon+" = smul i32 "+preSon+sonAns);
+                        addIR(newSon+" = smul i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp * sonAns;
                 }
@@ -264,7 +318,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 if(!sonIsRam)sonAns=-sonAns;
                 else{
                     String newRam = randomRam();
-                    addIR(newRam+" = smul i32 -1, "+sonRam);
+                    addIR(newRam+" = smul i32 -1, "+sonRam+"\n");
                     sonRam=newRam;
                 }
             }
@@ -277,8 +331,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitPrimaryExp(sysyParser.PrimaryExpContext ctx){
         if(ctx.lVal()!=null){
             if(idToAd.get(now-1).containsKey(ctx.lVal().IDENT().getText())){
-                sonRam=idToAd.get(now-1).get(ctx.lVal().IDENT().getText());
-                if(!adToVal.get(now-1).containsKey(sonRam))System.exit(-1);
+                String tmpRam=idToAd.get(now-1).get(ctx.lVal().IDENT().getText());
+                String newRam =randomRam();
+                addIR(newRam+" = load i32, i32* "+tmpRam+"\n");
+                sonRam=newRam;
                 sonIsRam=true;
             }else{
                 /*sonRam=randomRam();
