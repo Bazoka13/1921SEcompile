@@ -208,18 +208,18 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     fl = 1;
                     tmp = sonAns;
                 }
-            }else{
-                    fls=1;
-                    preSon=sonRam;
+            }else {
+                if (fls == 0) preSon = sonRam;
+                fls++;
             }
             if (i == 0) continue;
             if (ctx.addOp(i - 1).MINUS() != null) {
                 if (sonIsRam) {
                     String newSon=randomRam();
-                    if(fls==0){
-                        fls=1;
-                        preSon=sonRam;
+                    if(fls==1){
                         addIR(newSon+" = sub i32 "+tmp+" , "+sonRam+"\n");
+                        preSon=newSon;
+                        fls++;
                         continue;
                     }
                     addIR(newSon+" = sub i32 "+preSon+" , "+sonRam+"\n");
@@ -234,10 +234,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
             } else if (ctx.addOp(i - 1).PLUS() != null) {
                 if (sonIsRam) {
                     String newSon=randomRam();
-                    if(fls==0){
-                        fls=1;
-                        preSon=sonRam;
+                    if(fls==1){
                         addIR(newSon+" = add i32 "+tmp+" , "+sonRam+"\n");
+                        preSon=newSon;
+                        fls++;
                         continue;
                     }
                     addIR(newSon+" = add i32 "+preSon+" , "+sonRam+"\n");
@@ -276,17 +276,17 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     tmp=sonAns;
                 }
             }else{
-                fls=1;
-                preSon=sonRam;
+                if(fls==0)preSon=sonRam;
+                fls++;
             }
             if(i==0)continue;
             if (ctx.mulOp(i - 1).DIV() != null) {
                 if (sonIsRam) {
                     String newSon=randomRam();
-                    if(fls==0){
-                        fls=1;
-                        preSon=sonRam;
+                    if(fls==1){
                         addIR(newSon+" = sdiv i32 "+tmp+" , "+sonRam+"\n");
+                        preSon=newSon;
+                        fls++;
                         continue;
                     }
                     addIR(newSon+" = sdiv i32 "+preSon+" , "+sonRam+"\n");
@@ -301,10 +301,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
             } else if (ctx.mulOp(i - 1).MOD() != null) {
                 if (sonIsRam) {
                     String newSon=randomRam();
-                    if(fls==0){
-                        fls=1;
-                        preSon=sonRam;
+                    if(fls==1){
                         addIR(newSon+" = srem i32 "+tmp+" , "+sonRam+"\n");
+                        preSon=newSon;
+                        fls++;
                         continue;
                     }
                     addIR(newSon+" = srem i32 "+preSon+" , "+sonRam+"\n");
@@ -319,10 +319,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
             } else if (ctx.mulOp(i - 1).MUL() != null) {
                 if (sonIsRam) {
                     String newSon=randomRam();
-                    if(fls==0){
-                        fls=1;
-                        preSon=sonRam;
+                    if(fls==1){
                         addIR(newSon+" = mul i32 "+tmp+" , "+sonRam+"\n");
+                        preSon=newSon;
+                        fls++;
                         continue;
                     }
                     addIR(newSon+" = mul i32 "+preSon+" , "+sonRam+"\n");
