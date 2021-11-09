@@ -168,6 +168,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 addIR("call void @"+ctx.IDENT().getText()+"(i32 "+sonRam+")\n");
                 else addIR("call void @"+ctx.IDENT().getText()+"(i32 "+sonAns+")\n");
             }
+        }else{
+            System.exit(-1235);
         }
         return null;
     }
