@@ -20,10 +20,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private ArrayList<ArrayList<String>> defList = new ArrayList<>();//每个block
     private ArrayList<HashMap<String,Integer>> constList = new ArrayList<>();//存放常量
     private ArrayList<HashMap<String,String>> randRam=new ArrayList<>();
-    private void addIR(String s){
-        int tmp=now-1;
-        irList.get(tmp).add(s);
-    }//偷懒写个函数
+    //private HashMap<String,params> funcMenu=new HashMap<>();
+    private void addIR(String s){int tmp=now-1;irList.get(tmp).add(s);}//偷懒写个函数
     private String getRandRam(){
         Random df = new Random();
         int n=df.nextInt(10)+1;
@@ -44,9 +42,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
         randRam.get(now-1).put(tmps,"null");
         return tmps;
     }
+
     @Override public Void visitCompUnit(sysyParser.CompUnitContext ctx) {
         try {
             visitChildren(ctx);
+            System.out.println("declare i32 @getint()\n" +
+                    "declare void @putint(i32)\ndeclare i32 @getch()\n" +
+                    "declare void @putch(i32)");
             Iterator ite = getMpId.entrySet().iterator();
             while(ite.hasNext()){
                 HashMap.Entry entry = (HashMap.Entry) ite.next();
@@ -68,6 +70,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         return null;
     }
+
     @Override public Void visitFuncDef(sysyParser.FuncDefContext ctx) {
         String s = "define dso_local ";
         if(ctx.funcType().INT_KW()!=null){
@@ -140,10 +143,34 @@ public class Visitor extends sysyBaseVisitor<Void> {
        }
        return null;
    }
-    /*@Override public Void visitConstInitVal(sysyParser.ConstInitValContext ctx) {
+    @Override public Void visitCallee(sysyParser.CalleeContext ctx) {
+        /*if(funcMenu.containsKey(ctx.IDENT().getText())){
 
-       return null;
-   }*/
+        }else System.exit(-21);
+        */
+        if(Objects.equals(ctx.IDENT().getText(), "getint") || Objects.equals(ctx.IDENT().getText(), "getch")){
+            if(ctx.funcRParams()!=null)System.exit(-123);
+            String newRam=randomRam();
+            addIR(newRam+" = call i32 @"+ctx.IDENT().getText()+"()\n");
+            sonIsRam=true;
+            sonRam=newRam;
+        }else if(Objects.equals(ctx.IDENT().getText(), "putint") || Objects.equals(ctx.IDENT().getText(), "putch")){
+            if(ctx.funcRParams()==null)System.exit(-128);
+            System.out.println(ctx.funcRParams().param().size());
+            if(ctx.funcRParams().param().size()!=1)System.exit(-124);
+            if(ctx.funcRParams().param(0).STRING()!=null){
+                String s=ctx.funcRParams().param(0).STRING().getText();
+                addIR("call void @"+ctx.IDENT().getText()+"(i32 "+s+")\n");
+            }else{
+                sonIsRam=false;
+                visitExp(ctx.funcRParams().param(0).exp());
+                if(sonIsRam)
+                addIR("call void @"+ctx.IDENT().getText()+"(i32 "+sonRam+")\n");
+                else addIR("call void @"+ctx.IDENT().getText()+"(i32 "+sonAns+")\n");
+            }
+        }
+        return null;
+    }
     @Override public Void visitVarDecl(sysyParser.VarDeclContext ctx){
         int n=ctx.varDef().size();
         for(int i=0;i<n;i++){
