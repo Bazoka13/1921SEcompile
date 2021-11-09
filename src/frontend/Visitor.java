@@ -158,6 +158,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             if(ctx.funcRParams()==null)System.exit(-128);
             if(ctx.funcRParams().param().size()!=1)System.exit(-124);
             if(ctx.funcRParams().param(0).STRING()!=null){
+                System.exit(-128);
                 String s=ctx.funcRParams().param(0).STRING().getText();
                 addIR("call void @"+ctx.IDENT().getText()+"(i32 "+s+")\n");
             }else{
