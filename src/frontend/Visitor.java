@@ -170,8 +170,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
         ownId.get(funcNow-1).add(new ArrayList<>());ownConst.get(funcNow-1).add(new ArrayList<>());
         needAllocaRam.get(funcNow-1).add(new ArrayList<>());
         fa.get(funcNow - 1).put(nowBlock, now);
+        boolean lbr=true;
         if (ctx.L_BRACE() != null) {
             if(!fromCond)addIR("{\n");
+            else lbr=false;
         }
         try {
             int pre = now;
@@ -185,7 +187,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             System.exit(-1);
         }
         if (ctx.R_BRACE() != null) {
-            if(!fromCond)addIR("}\n");
+            if(lbr)addIR("}\n");
         }
         return null;
     }
@@ -491,18 +493,20 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitConditionStmt(sysyParser.ConditionStmtContext ctx) {
         exeLabel=randomBlock();
         outLabel=randomBlock();
+        String ss=backLabel;
         visitCond(ctx.cond());
         addIR(exeLabel+": \n");
         fromCond=true;
         visitStmt(ctx.stmt(0));
-        addIR("br label "+"%"+ backLabel+"\n");
+
+        addIR("br label "+"%"+ ss+"\n");
         addIR(outLabel+": \n");
         if(ctx.stmt().size()>1){
             fromCond=true;
             visitStmt(ctx.stmt(1));
         }
         fromCond=false;
-        addIR("br label "+"%"+ backLabel+"\n");
+        addIR("br label "+"%"+ ss+"\n");
         return null;
     }
     @Override public Void visitLOrExp(sysyParser.LOrExpContext ctx){
@@ -592,8 +596,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitStmt(sysyParser.StmtContext ctx) {
         if(ctx.conditionStmt()!=null){
             backLabel=randomBlock();
+            String ss=backLabel;
             visitConditionStmt(ctx.conditionStmt());
-            addIR(backLabel+": \n");
+            addIR(ss+": \n");
         }else{
             visitChildren(ctx);
         }
