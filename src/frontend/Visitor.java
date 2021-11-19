@@ -498,26 +498,28 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitConditionStmt(sysyParser.ConditionStmtContext ctx) {
         exeLabel=randomBlock();
         outLabel=randomBlock();
-        sonRet=false;
-        sonRet2=false;
+        boolean sonret=false;
+        boolean sonret2=false;
         String ss=backLabel;
         String ee=exeLabel,oo=outLabel;
         visitCond(ctx.cond());
         addIR(ee+": \n");
         fromCond=true;
-        visitStmt(ctx.stmt(0));
         if(ctx.stmt(0).returnStmt()!=null){
-            sonRet=true;
+            sonret=true;
         }
-        if(!sonRet)addIR("br label "+"%"+ ss+"\n");
+        visitStmt(ctx.stmt(0));
+        if(!sonret)addIR("br label "+"%"+ ss+"\n");
         addIR(oo+": \n");
         if(ctx.stmt().size()>1){
             fromCond=true;
+            if(ctx.stmt(1).returnStmt()!=null)sonret2=true;
             visitStmt(ctx.stmt(1));
-            if(ctx.stmt(1).returnStmt()!=null)sonRet2=true;
         }
         fromCond=false;
-        if(!sonRet2)addIR("br label "+"%"+ ss+"\n");
+        if(!sonret2)addIR("br label "+"%"+ ss+"\n");
+        sonRet=sonret;
+        sonRet2=sonret2;
         return null;
     }
     @Override public Void visitLOrExp(sysyParser.LOrExpContext ctx){
