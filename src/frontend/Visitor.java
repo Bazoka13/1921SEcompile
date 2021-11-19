@@ -13,6 +13,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private int now;//当前visit作用域的ID
     private boolean sonIsRam;
     private boolean isConst;
+    private boolean fromCond;
+    private String sonBr;//son块结束后跳转到sonBr，显然只需要跳到上一层父亲
     private List<HashMap<Integer,Integer>> fa = new ArrayList<>();// 注意-1，存放每个函数中的作用域父子关系
     private HashMap<String,Integer> getMpId = new HashMap<>();//注意-1 ，每个函数对应HashMap在下面两个List的位置
     private List<HashMap<String, String>> idToAd = new ArrayList<>();//标识符到寄存器的映射
@@ -46,7 +48,19 @@ public class Visitor extends sysyBaseVisitor<Void> {
         randRam.get(funcNow-1).put(tmps,"null");
         return tmps;
     }
-
+    private String randomBlock(){
+        Random df = new Random();
+        int n=df.nextInt(20)+1;
+        StringBuilder str = new StringBuilder("%");
+        for (int i = 0; i < n; i++) {
+            if(i>0&&i<n-1){
+                int tmpp=new Random().nextInt(5);
+                if((tmpp&1)!=0)str.append('_');
+            }
+            str.append((char) (Math.random() * 26 + 'a'));
+        }
+        return str.toString();
+    }
     @Override public Void visitCompUnit(sysyParser.CompUnitContext ctx) {
         try {
             System.out.println("declare i32 @getint()\n" +
@@ -114,6 +128,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             irList.get(funcNow-1).add(new ArrayList<>());
             ownId.get(funcNow-1).add(new ArrayList<>());
             ownConst.get(funcNow-1).add(new ArrayList<>());
+            fromCond=false;
             visitBlock(ctx.block());
             int num = blockId.get(funcNow);
             for(int i=1;i<num;i++){
@@ -123,7 +138,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     irList.get(funcNow-1).get(0).add("visitSon"+i);
                 }
             }
-            printBlock(0);//todo printBlock
+            printBlock(0);
         }catch (RecognitionException re){
             System.exit(-1);
         }
@@ -156,7 +171,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         needAllocaRam.get(funcNow-1).add(new ArrayList<>());
         fa.get(funcNow - 1).put(nowBlock, now);
         if (ctx.L_BRACE() != null) {
-            addIR("{\n");
+            if(!fromCond)addIR("{\n");
         }
         try {
             int pre = now;
@@ -170,7 +185,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             System.exit(-1);
         }
         if (ctx.R_BRACE() != null) {
-            addIR("}\n");
+            if(!fromCond)addIR("}\n");
         }
         return null;
     }
@@ -420,8 +435,21 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 if(!sonIsRam)sonAns=-sonAns;
                 else{
                     String newRam = randomRam();
-                    addIR(newRam+" = mul i32 -1, "+sonRam+"\n");
+                    addIR(newRam+" = sub i32 0, "+sonRam+"\n");
                     sonRam=newRam;
+                }
+            }
+            if(ctx.unaryOp().NOT()!=null){
+                if(!sonIsRam){
+                  if(sonAns!=0){
+                      sonAns=1;
+                  }else sonAns=0;
+                } else{
+                    String newRam = randomRam();
+                    addIR(newRam+" = icmp eq i32 "+sonRam+" , 0\n");
+                    String anoRam=randomRam();
+                    addIR(anoRam+"= zext i1 "+newRam+" to i32");
+                    sonRam=anoRam;
                 }
             }
         }else if(ctx.primaryExp()!=null){
@@ -450,6 +478,107 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }else if(ctx.number()!=null){
             sonIsRam=false;
             visitNumber(ctx.number());
+        }else{
+            visitChildren(ctx);
+        }
+        return null;
+    }
+    private String sonCondRam;
+    private String nxtLabel;
+    private String endLabel;
+    private String exeLabel;
+    private String outLabel;
+    private String backLabel;
+    @Override public Void visitConditionStmt(sysyParser.ConditionStmtContext ctx) {
+        exeLabel=randomBlock();
+        outLabel=randomBlock();
+        visitCond(ctx.cond());
+        addIR(exeLabel+": \n");
+        fromCond=true;
+        visitStmt(ctx.stmt(0));
+        addIR("br label "+ backLabel+"\n");
+        addIR(outLabel+": \n");
+        if(ctx.stmt().size()>1){
+            fromCond=true;
+            visitStmt(ctx.stmt(1));
+        }
+        fromCond=false;
+        addIR("br label "+ backLabel+"\n");
+        return null;
+    }
+    @Override public Void visitLOrExp(sysyParser.LOrExpContext ctx){
+        int n=ctx.lAndExp().size();
+        for(int i=0;i<n;i++){
+            endLabel=randomBlock();
+            visitLAndExp(ctx.lAndExp(i));
+            addIR(endLabel+": \n");
+            nxtLabel=randomBlock();
+            if(i!=n-1){
+                addIR("br i1 "+sonCondRam+" label "+exeLabel+" , label "+nxtLabel+'\n');
+                addIR(nxtLabel+" :\n");
+            }else{
+                addIR("br i1 "+sonCondRam+" label "+exeLabel+" , label "+outLabel+'\n');
+            }
+        }
+        return null;
+    }
+    @Override public Void visitLAndExp(sysyParser.LAndExpContext ctx) {
+        int n=ctx.eqExp().size();
+        for(int i=0;i<n;i++){
+            visitEqExp(ctx.eqExp(i));
+            nxtLabel=randomBlock();
+            if(i!=n-1){
+                addIR("br i1 "+sonCondRam+" label "+nxtLabel+" , label "+endLabel+'\n');
+                addIR(nxtLabel+" :\n");
+            }else{
+                addIR("br "+ "label "+endLabel+'\n');
+            }
+        }
+        return null;
+    }
+    private boolean fromI1;//儿子是i1还是i32
+    @Override public Void visitRelExp(sysyParser.RelExpContext ctx) {
+        int n=ctx.addExp().size();
+        String preRam="";
+        for(int i=0;i<n;i++){
+            visitAddExp(ctx.addExp(i));
+            if(i!=0){
+                String newRam=randomRam();
+                String ss=ctx.relOp().get(i-1).getText();
+                ss=ss.toLowerCase();
+                addIR(newRam+" = icmp "+ss+" i32 "+preRam+" , i32 "+sonRam+"\n");
+                String anoRam = randomRam();
+                addIR(anoRam+" = zext i1 "+newRam+" to i32\n");
+                preRam=anoRam;
+            } else preRam=sonRam;
+        }
+        sonRam=preRam;
+        return null;
+    }
+
+    @Override public Void visitEqExp(sysyParser.EqExpContext ctx) {
+        int n=ctx.relExp().size();
+        String preRam="";
+        for(int i=0;i<n;i++){
+            visitRelExp(ctx.relExp(i));
+            if(i!=0){
+                String newRam=randomRam();
+                String ss=ctx.eqOp().get(i-1).getText();
+                ss=ss.toLowerCase();
+                addIR(newRam+" = icmp "+ss+" i32 "+preRam+" , i32 "+sonRam+"\n");
+                String anoRam = randomRam();
+                addIR(anoRam+" = zext i1 "+newRam+" to i32\n");
+                preRam=anoRam;
+            } else preRam=sonRam;
+        }
+        sonRam=preRam;
+        return null;
+    }
+    @Override public Void visitStmt(sysyParser.StmtContext ctx) {
+        if(ctx.conditionStmt()!=null){
+            backLabel=randomBlock();
+            visitConditionStmt(ctx.conditionStmt());
+            addIR(backLabel+": \n");
         }else{
             visitChildren(ctx);
         }
