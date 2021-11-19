@@ -88,9 +88,15 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 String ss=s.substring(8,len);
                 int num=Integer.parseInt(ss);
                 printBlock(num);
-            }else System.out.print(s);
+            }else {
+                int len=s.length();
+                if(len>=2&&delList.containsKey(s.substring(0,len-2)))continue;
+                if(len>=11&&delList.containsKey(s.substring(10,len-1)))continue;
+                System.out.print(s);
+            }
         }
     }
+    private HashMap<String,Integer> delList=new HashMap<>();
     @Override public Void visitFuncDef(sysyParser.FuncDefContext ctx) {
         String s = "define dso_local ";
         if(ctx.funcType().INT_KW()!=null){
@@ -131,11 +137,26 @@ public class Visitor extends sysyBaseVisitor<Void> {
             fromCond=false;
             visitBlock(ctx.block());
             int num = blockId.get(funcNow);
+            delList.clear();
             for(int i=1;i<num;i++){
                 if(!fa.get(funcNow - 1).containsKey(i)){
                     fa.get(funcNow-1).put(i,0);
                     sonList.get(funcNow-1).get(0).add(i);
                     irList.get(funcNow-1).get(0).add("visitSon"+i);
+                }
+
+                for(int j=0;j<irList.get(funcNow-1).get(i).size();j++){
+                    String ss=irList.get(funcNow-1).get(i).get(j);
+                    int len=ss.length();
+                    if(len>=2&&ss.charAt(len-2)==':'){
+                        if(j==irList.get(funcNow-1).get(i).size()-1){
+                            delList.put(ss.substring(0,len-2),1);
+                        }else{
+                            String nxt=irList.get(funcNow-1).get(i).get(j+1);
+                            if(nxt.charAt(0)=='}')delList.put(ss.substring(0,len-2),1);
+                            else if(nxt.length()>=2&&nxt.charAt(nxt.length()-2)==':')delList.put(ss.substring(0,len-2),1);
+                        }
+                    }
                 }
             }
             printBlock(0);
@@ -496,11 +517,11 @@ public class Visitor extends sysyBaseVisitor<Void> {
         String ss=backLabel;
         String ee=exeLabel,oo=outLabel;
         visitCond(ctx.cond());
-        addIR(ee+": \n");
+        addIR(ee+":\n");
         fromCond=true;
         visitStmt(ctx.stmt(0));
         addIR("br label "+"%"+ ss+"\n");
-        addIR(oo+": \n");
+        addIR(oo+":\n");
         if(ctx.stmt().size()>1){
             fromCond=true;
             visitStmt(ctx.stmt(1));
@@ -514,7 +535,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         for(int i=0;i<n;i++){
             endLabel=randomBlock();
             visitLAndExp(ctx.lAndExp(i));
-            addIR(endLabel+": \n");
+            addIR(endLabel+":\n");
             nxtLabel=randomBlock();
             if(i!=n-1){
                 String newRam = randomRam();
@@ -598,7 +619,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             backLabel=randomBlock();
             String ss=backLabel;
             visitConditionStmt(ctx.conditionStmt());
-            addIR(ss+": \n");
+            addIR(ss+":\n");
         }else{
             visitChildren(ctx);
         }
