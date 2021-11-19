@@ -474,7 +474,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     System.exit(-3);
                 else{
                     sonIsRam=false;
-                    sonAns=constList.get(funcNow-1).get(ctx.lVal().IDENT().getText()).intValue();
+                    sonAns= constList.get(funcNow - 1).get(ctx.lVal().IDENT().getText());
                 }
             }
         }else if(ctx.number()!=null){
@@ -493,14 +493,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitConditionStmt(sysyParser.ConditionStmtContext ctx) {
         exeLabel=randomBlock();
         outLabel=randomBlock();
-        String ss=backLabel;
+        String ss=backLabel;String ee=exeLabel,oo=outLabel;
         visitCond(ctx.cond());
-        addIR(exeLabel+": \n");
+        addIR(ee+": \n");
         fromCond=true;
         visitStmt(ctx.stmt(0));
-
         addIR("br label "+"%"+ ss+"\n");
-        addIR(outLabel+": \n");
+        addIR(oo+": \n");
         if(ctx.stmt().size()>1){
             fromCond=true;
             visitStmt(ctx.stmt(1));
