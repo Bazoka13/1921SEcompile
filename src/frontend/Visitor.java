@@ -554,7 +554,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 }else{
                     ss="sge";
                 }
-                addIR(newRam+" = icmp "+ss+" i32 "+preRam+" , i32 "+sonRam+"\n");
+                addIR(newRam+" = icmp "+ss+" i32 "+preRam+" , "+sonRam+"\n");
                 String anoRam = randomRam();
                 addIR(anoRam+" = zext i1 "+newRam+" to i32\n");
                 preRam=anoRam;
@@ -575,7 +575,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 if(ctx.eqOp().get(i-1).EQ()!=null){
                     ss="eq";
                 }else ss="ne";
-                addIR(newRam+" = icmp "+ss+" i32 "+preRam+" , i32 "+sonRam+"\n");
+                addIR(newRam+" = icmp "+ss+" i32 "+preRam+" ,  "+sonRam+"\n");
                 String anoRam = randomRam();
                 addIR(anoRam+" = zext i1 "+newRam+" to i32\n");
                 preRam=anoRam;
