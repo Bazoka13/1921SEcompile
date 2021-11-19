@@ -514,12 +514,12 @@ public class Visitor extends sysyBaseVisitor<Void> {
             nxtLabel=randomBlock();
             if(i!=n-1){
                 String newRam = randomRam();
-                addIR(newRam+" = zext i32 "+sonRam+" to i1\n");
+                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
                 addIR("br i1 "+newRam+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
                 addIR(nxtLabel+" :\n");
             }else{
                 String newRam = randomRam();
-                addIR(newRam+" = zext i32 "+sonRam+" to i1\n");
+                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
                 addIR("br i1 "+newRam+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
             }
         }
@@ -532,7 +532,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             nxtLabel=randomBlock();
             if(i!=n-1){
                 String newRam=randomRam();
-                addIR(newRam+" = zext i32 "+sonRam+" to i1\n");
+                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
                 addIR("br i1 "+newRam+" , label "+"%"+nxtLabel+" , label "+"%"+endLabel+'\n');
                 addIR(nxtLabel+" :\n");
             }else{
