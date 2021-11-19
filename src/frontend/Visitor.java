@@ -450,7 +450,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     String newRam = randomRam();
                     addIR(newRam+" = icmp eq i32 "+sonRam+" , 0\n");
                     String anoRam=randomRam();
-                    addIR(anoRam+"= zext i1 "+newRam+" to i32");
+                    addIR(anoRam+"= zext i1 "+newRam+" to i32\n");
                     sonRam=anoRam;
                 }
             }
@@ -493,7 +493,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitConditionStmt(sysyParser.ConditionStmtContext ctx) {
         exeLabel=randomBlock();
         outLabel=randomBlock();
-        String ss=backLabel;String ee=exeLabel,oo=outLabel;
+        String ss=backLabel;
+        String ee=exeLabel,oo=outLabel;
         visitCond(ctx.cond());
         addIR(ee+": \n");
         fromCond=true;
