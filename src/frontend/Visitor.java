@@ -513,10 +513,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
             addIR(endLabel+": \n");
             nxtLabel=randomBlock();
             if(i!=n-1){
-                addIR("br i1 "+sonRam+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
+                String newRam = randomRam();
+                addIR(newRam+" = zext i32 "+sonRam+" to i1\n");
+                addIR("br i1 "+newRam+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
                 addIR(nxtLabel+" :\n");
             }else{
-                addIR("br i1 "+sonRam+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
+                String newRam = randomRam();
+                addIR(newRam+" = zext i32 "+sonRam+" to i1\n");
+                addIR("br i1 "+newRam+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
             }
         }
         return null;
@@ -527,7 +531,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
             visitEqExp(ctx.eqExp(i));
             nxtLabel=randomBlock();
             if(i!=n-1){
-                addIR("br i1 "+sonRam+" , label "+"%"+nxtLabel+" , label "+"%"+endLabel+'\n');
+                String newRam=randomRam();
+                addIR(newRam+" = zext i32 "+sonRam+" to i1\n");
+                addIR("br i1 "+newRam+" , label "+"%"+nxtLabel+" , label "+"%"+endLabel+'\n');
                 addIR(nxtLabel+" :\n");
             }else{
                 addIR("br "+ "label "+"%"+endLabel+'\n');
