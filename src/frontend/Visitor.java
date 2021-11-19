@@ -121,7 +121,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }catch (RecognitionException re){
             System.exit(-1);
         }
-        System.out.print(s+'@'+ctx.IDENT().getText()+"()");
+        System.out.print(s+'@'+ctx.IDENT().getText()+"()\n");
         try {
             needAllocaRam.get(funcNow-1).add(new ArrayList<>());
             sonList.get(funcNow-1).add(new ArrayList<>());
