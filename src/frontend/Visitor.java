@@ -51,7 +51,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private String randomBlock(){
         Random df = new Random();
         int n=df.nextInt(20)+1;
-        StringBuilder str = new StringBuilder("%");
+        StringBuilder str = new StringBuilder("");
         for (int i = 0; i < n; i++) {
             if(i>0&&i<n-1){
                 int tmpp=new Random().nextInt(5);
@@ -483,7 +483,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         return null;
     }
-    private String sonCondRam;
     private String nxtLabel;
     private String endLabel;
     private String exeLabel;
@@ -496,14 +495,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
         addIR(exeLabel+": \n");
         fromCond=true;
         visitStmt(ctx.stmt(0));
-        addIR("br label "+ backLabel+"\n");
+        addIR("br label "+"%"+ backLabel+"\n");
         addIR(outLabel+": \n");
         if(ctx.stmt().size()>1){
             fromCond=true;
             visitStmt(ctx.stmt(1));
         }
         fromCond=false;
-        addIR("br label "+ backLabel+"\n");
+        addIR("br label "+"%"+ backLabel+"\n");
         return null;
     }
     @Override public Void visitLOrExp(sysyParser.LOrExpContext ctx){
@@ -514,10 +513,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
             addIR(endLabel+": \n");
             nxtLabel=randomBlock();
             if(i!=n-1){
-                addIR("br i1 "+sonCondRam+" label "+exeLabel+" , label "+nxtLabel+'\n');
+                addIR("br i1 "+sonRam+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
                 addIR(nxtLabel+" :\n");
             }else{
-                addIR("br i1 "+sonCondRam+" label "+exeLabel+" , label "+outLabel+'\n');
+                addIR("br i1 "+sonRam+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
             }
         }
         return null;
@@ -528,10 +527,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
             visitEqExp(ctx.eqExp(i));
             nxtLabel=randomBlock();
             if(i!=n-1){
-                addIR("br i1 "+sonCondRam+" label "+nxtLabel+" , label "+endLabel+'\n');
+                addIR("br i1 "+sonRam+" , label "+"%"+nxtLabel+" , label "+"%"+endLabel+'\n');
                 addIR(nxtLabel+" :\n");
             }else{
-                addIR("br "+ "label "+endLabel+'\n');
+                addIR("br "+ "label "+"%"+endLabel+'\n');
             }
         }
         return null;
