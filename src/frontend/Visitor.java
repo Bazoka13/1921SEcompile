@@ -1,6 +1,7 @@
 package frontend;
 
 import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -490,7 +491,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
         return null;
     }
     private String nxtLabel;
-    private String endLabel;
     private String exeLabel;
     private String outLabel;
     private String backLabel;
@@ -521,20 +521,25 @@ public class Visitor extends sysyBaseVisitor<Void> {
         sonRet=sonret&sonret2;
         return null;
     }
+    private List<Pair<String,String>> addList=new ArrayList<>();//son,sonLabel
     @Override public Void visitLOrExp(sysyParser.LOrExpContext ctx){
         int n=ctx.lAndExp().size();
         for(int i=0;i<n;i++){
-            endLabel=randomBlock();
+            addList.clear();
             visitLAndExp(ctx.lAndExp(i));
-            addIR(endLabel+": \n");
             nxtLabel=randomBlock();
             if(i!=n-1){
-                addIR("br i1 "+sonRam+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
+                for(Pair p:addList){
+                    addIR(p.b+":\n");
+                    addIR("br i1 "+p.a+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
+                }
                 addIR(nxtLabel+":\n");
             }else{
-//                String newRam = randomRam();
-//                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
-                addIR("br i1 "+sonRam+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
+                for(Pair p:addList){
+                    addIR(p.b+":\n");
+                    addIR("br i1 "+p.a+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
+                }
+                
             }
         }
         return null;
@@ -544,17 +549,17 @@ public class Visitor extends sysyBaseVisitor<Void> {
         for(int i=0;i<n;i++){
             visitEqExp(ctx.eqExp(i));
             nxtLabel=randomBlock();
+            String addLabel=randomBlock();
+            String newRam=randomRam();
+            addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
             if(i!=n-1){
-                String newRam=randomRam();
-                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
-                addIR("br i1 "+newRam+" , label "+"%"+nxtLabel+" , label "+"%"+endLabel+'\n');
+                addIR("br i1 "+newRam+" , label "+"%"+nxtLabel+" , label "+"%"+addLabel+'\n');
                 addIR(nxtLabel+":\n");
             }else{
-                String newRam = randomRam();
-                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
                 sonRam=newRam;
-                addIR("br "+ "label "+"%"+endLabel+'\n');
+                addIR("br "+ "label "+"%"+addLabel+'\n');
             }
+            addList.add(new Pair(sonRam,addLabel));
         }
         return null;
     }
