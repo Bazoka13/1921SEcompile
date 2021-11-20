@@ -529,14 +529,12 @@ public class Visitor extends sysyBaseVisitor<Void> {
             addIR(endLabel+": \n");
             nxtLabel=randomBlock();
             if(i!=n-1){
-                String newRam = randomRam();
-                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
-                addIR("br i1 "+newRam+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
+                addIR("br i1 "+sonRam+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
                 addIR(nxtLabel+":\n");
             }else{
-                String newRam = randomRam();
-                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
-                addIR("br i1 "+newRam+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
+//                String newRam = randomRam();
+//                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
+                addIR("br i1 "+sonRam+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
             }
         }
         return null;
@@ -552,6 +550,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 addIR("br i1 "+newRam+" , label "+"%"+nxtLabel+" , label "+"%"+endLabel+'\n');
                 addIR(nxtLabel+":\n");
             }else{
+                String newRam = randomRam();
+                addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
+                sonRam=newRam;
                 addIR("br "+ "label "+"%"+endLabel+'\n');
             }
         }
