@@ -531,7 +531,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 String newRam = randomRam();
                 addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
                 addIR("br i1 "+newRam+" , label "+"%"+exeLabel+" , label "+"%"+nxtLabel+'\n');
-                addIR(nxtLabel+" :\n");
+                addIR(nxtLabel+":\n");
             }else{
                 String newRam = randomRam();
                 addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
@@ -549,7 +549,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 String newRam=randomRam();
                 addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
                 addIR("br i1 "+newRam+" , label "+"%"+nxtLabel+" , label "+"%"+endLabel+'\n');
-                addIR(nxtLabel+" :\n");
+                addIR(nxtLabel+":\n");
             }else{
                 addIR("br "+ "label "+"%"+endLabel+'\n');
             }
@@ -607,7 +607,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitStmt(sysyParser.StmtContext ctx) {
         if(ctx.conditionStmt()!=null){
             backLabel=randomBlock();
-            backLabel+="123";
             String ss=backLabel;
             visitConditionStmt(ctx.conditionStmt());
             if(!sonRet) addIR(ss+": \n");
