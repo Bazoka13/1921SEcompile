@@ -610,7 +610,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             backLabel=randomBlock();
             String ss=backLabel;
             visitConditionStmt(ctx.conditionStmt());
-            if(!sonRet) addIR(ss+": \n");
+            if(!sonRet) addIR(ss+"         : \n");
         }else{
             if(ctx.returnStmt()!=null)sonRet=true;
             visitChildren(ctx);
