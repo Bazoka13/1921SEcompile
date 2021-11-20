@@ -200,6 +200,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         visitConstInitVal(ctx.constInitVal());
         if(sonIsRam)System.exit(-10);
         else{
+            if(constList.get(funcNow-1).containsKey(ctx.IDENT().getText()))System.exit(-4399);
             ownConst.get(funcNow-1).get(now).add(ctx.IDENT().getText());
             Integer tmp=sonAns;
             constList.get(funcNow-1).put(ctx.IDENT().getText(),sonAns);
@@ -241,7 +242,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitVarDef(sysyParser.VarDefContext ctx) {
         String nowVar=ctx.IDENT().getText();
         HashMap<String,String> nowMap=idToAd.get(funcNow-1);
-        if(nowMap.containsKey(nowVar));//System.exit(-1);
+        if(nowMap.containsKey(nowVar))System.exit(-1);
         else{
             ownId.get(funcNow-1).get(now).add(ctx.IDENT().getText());
             String newRam = randomRam();
