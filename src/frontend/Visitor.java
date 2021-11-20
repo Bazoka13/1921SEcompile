@@ -539,7 +539,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(p.b+":\n");
                     addIR("br i1 "+p.a+" , label "+"%"+exeLabel+" , label "+"%"+outLabel+'\n');
                 }
-                
+
             }
         }
         return null;
@@ -555,6 +555,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             if(i!=n-1){
                 addIR("br i1 "+newRam+" , label "+"%"+nxtLabel+" , label "+"%"+addLabel+'\n');
                 addIR(nxtLabel+":\n");
+                sonRam=newRam;
             }else{
                 sonRam=newRam;
                 addIR("br "+ "label "+"%"+addLabel+'\n');
