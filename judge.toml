@@ -2,5 +2,6 @@
 image = { source = "dockerfile", path = "." }
 
 run = [
+  "cat $input",
   "java -classpath \".:lib/*:out\" compileBoot < \"$input\" > \"$ir\"",
 ]
