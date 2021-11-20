@@ -554,7 +554,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             addIR(newRam+" = icmp ne i32 "+sonRam+" , 0\n");
             if(i!=n-1){
                 addIR("br i1 "+newRam+" , label "+"%"+nxtLabel+" , label "+"%"+addLabel+'\n');
-                addIR(nxtLabel+"::\n");
+                addIR(nxtLabel+":\n");
                 sonRam=newRam;
             }else{
                 sonRam=newRam;
