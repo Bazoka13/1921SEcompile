@@ -505,21 +505,20 @@ public class Visitor extends sysyBaseVisitor<Void> {
         visitCond(ctx.cond());
         addIR(ee+": \n");
         fromCond=true;
-        if(ctx.stmt(0).returnStmt()!=null){
-            sonret=true;
-        }
+        sonRet=false;
         visitStmt(ctx.stmt(0));
-        if(!sonret)addIR("br label "+"%"+ ss+"\n");
+        if(!sonRet)addIR("br label "+"%"+ ss+"\n");
+        sonret=sonRet;
         addIR(oo+": \n");
+        sonRet=false;
         if(ctx.stmt().size()>1){
             fromCond=true;
-            if(ctx.stmt(1).returnStmt()!=null)sonret2=true;
             visitStmt(ctx.stmt(1));
-        }
+        }else sonRet=false;
         fromCond=false;
-        if(!sonret2)addIR("br label "+"%"+ ss+"\n");
-        sonRet=sonret;
-        sonRet2=sonret2;
+        if(!sonRet)addIR("br label "+"%"+ ss+"\n");
+        sonret2=sonRet;
+        sonRet=sonret&sonret2;
         return null;
     }
     @Override public Void visitLOrExp(sysyParser.LOrExpContext ctx){
@@ -611,9 +610,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
             backLabel=randomBlock();
             String ss=backLabel;
             visitConditionStmt(ctx.conditionStmt());
-            if(!sonRet2) addIR(ss+": \n");
-            else if(!sonRet)addIR(ss+": \n");
+            if(!sonRet) addIR(ss+": \n");
         }else{
+            if(ctx.returnStmt()!=null)sonRet=true;
             visitChildren(ctx);
         }
         return null;
