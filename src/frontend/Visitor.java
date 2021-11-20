@@ -494,7 +494,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private String outLabel;
     private String backLabel;
     private boolean sonRet=false;
-    private boolean sonRet2=false;
     @Override public Void visitConditionStmt(sysyParser.ConditionStmtContext ctx) {
         exeLabel=randomBlock();
         outLabel=randomBlock();
@@ -608,9 +607,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitStmt(sysyParser.StmtContext ctx) {
         if(ctx.conditionStmt()!=null){
             backLabel=randomBlock();
+            backLabel+="123";
             String ss=backLabel;
             visitConditionStmt(ctx.conditionStmt());
-            if(!sonRet) addIR(ss+"         : \n");
+            if(!sonRet) addIR(ss+": \n");
         }else{
             if(ctx.returnStmt()!=null)sonRet=true;
             visitChildren(ctx);
