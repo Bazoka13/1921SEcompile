@@ -180,13 +180,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
         try {
             int pre = now;
             addIR("visitSon" + nowBlock);
-
             for(String s:idToAd.get(funcNow-1).keySet())tmpVar.put(s,idToAd.get(funcNow-1).get(s));
             for(String s:constList.get(funcNow-1).keySet())tmpConst.put(s,constList.get(funcNow-1).get(s));
             now = nowBlock;
             visitChildren(ctx);
-            constList.set(funcNow-1,tmpConst);
-            idToAd.set(funcNow-1,tmpVar);
             now = pre;
         } catch (RecognitionException re) {
             System.exit(-1);
@@ -251,7 +248,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
     }
     @Override public Void visitVarDef(sysyParser.VarDefContext ctx) {
         String nowVar = ctx.IDENT().getText();
-        HashMap<String, String> nowMap = idToAd.get(funcNow - 1);
         String newRam = randomRam();
         if(constList.get(funcNow-1).containsKey(nowVar)){
             System.exit(-212);
@@ -260,8 +256,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
             System.exit(-23);
         }
         vis.put(nowVar,1);
-        nowMap.put(nowVar, newRam);
-        idToAd.set(funcNow - 1, nowMap);
+        if(!idToAd.get(funcNow-1).containsKey(nowVar))idToAd.get(funcNow - 1).put(nowVar,newRam);
+        else idToAd.get(funcNow-1).replace(nowVar,newRam);
         needAllocaRam.get(funcNow - 1).get(now).add(newRam);
         if (ctx.ASSIGN() != null) {
             visitInitVal(ctx.initVal());
@@ -489,8 +485,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 sonRam=newRam;
                 sonIsRam=true;
             }else{
-                if(!constList.get(funcNow- 1).containsKey(ctx.lVal().IDENT().getText()))
+                if(!constList.get(funcNow- 1).containsKey(ctx.lVal().IDENT().getText())) {
                     System.exit(-3);
+                }
                 else{
                     sonIsRam=false;
                     sonAns= constList.get(funcNow - 1).get(ctx.lVal().IDENT().getText());
