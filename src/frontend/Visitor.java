@@ -15,6 +15,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private boolean sonIsRam;
     private boolean isConst;
     private boolean fromCond;
+    private boolean inFuncDef;
     private String sonBr;//son块结束后跳转到sonBr，显然只需要跳到上一层父亲
     private List<HashMap<Integer,Integer>> fa = new ArrayList<>();// 注意-1，存放每个函数中的作用域父子关系
     private HashMap<String,Integer> getMpId = new HashMap<>();//注意-1 ，每个函数对应HashMap在下面两个List的位置
@@ -26,6 +27,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private ArrayList<HashMap<String,String>> randRam=new ArrayList<>();
     private HashMap<Integer,Integer> blockId=new HashMap<>();//每个函数的当前可分配最小block编号
     private ArrayList<ArrayList<ArrayList<Integer>>> sonList = new ArrayList<>();
+    private HashMap<String,Integer> vis = new HashMap<>();
+    private HashMap<String,Integer> globalVar = new HashMap<>();
+    private HashMap<String,Integer> globalConst = new HashMap<>();
     private void addIR(String s){irList.get(funcNow-1).get(now).add(s);}//偷懒写个函数
     private String getRandRam(){
         Random df = new Random();
@@ -75,8 +79,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private void printBlock(int x) {
         ArrayList<String> t = needAllocaRam.get(funcNow - 1).get(x);
         ArrayList<String> tmps = irList.get(funcNow-1).get(x);
-        /*System.out.print(tmps.get(0));
-        System.out.print(tmps.get(1));*/
         for (String s : t) {
             System.out.println(s + " = alloca i32");
         }
@@ -94,6 +96,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
     }
     @Override public Void visitFuncDef(sysyParser.FuncDefContext ctx) {
+        inFuncDef=true;
         String s = "define dso_local ";
         if(ctx.funcType().INT_KW()!=null){
             s+="i32 ";
@@ -143,6 +146,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         funcNow=pre;
         System.out.print("}\n");
+        inFuncDef=false;
         return null;
     }
     @Override public Void visitIntConst(sysyParser.IntConstContext ctx) {
@@ -159,6 +163,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         return null;
     }
     @Override public Void visitBlock(sysyParser.BlockContext ctx) {
+        vis.clear();
         int nowBlock = now + 1;
         int tmp = blockId.get(funcNow);
         nowBlock = tmp;
@@ -169,12 +174,15 @@ public class Visitor extends sysyBaseVisitor<Void> {
         sonList.get(funcNow - 1).get(now).add(nowBlock);
         needAllocaRam.get(funcNow-1).add(new ArrayList<>());
         fa.get(funcNow - 1).put(nowBlock, now);
+        HashMap<String,Integer> tmpConst = new HashMap<>();
+        HashMap<String ,String> tmpVar = new HashMap<>();
         boolean lbr=true;
         try {
             int pre = now;
-            addIR("visitSon" + nowBlock);//todo 记得加id
-            HashMap<String,Integer> tmpConst = constList.get(funcNow-1);
-            HashMap<String ,String> tmpVar = idToAd.get(funcNow-1);
+            addIR("visitSon" + nowBlock);
+
+            for(String s:idToAd.get(funcNow-1).keySet())tmpVar.put(s,idToAd.get(funcNow-1).get(s));
+            for(String s:constList.get(funcNow-1).keySet())tmpConst.put(s,constList.get(funcNow-1).get(s));
             now = nowBlock;
             visitChildren(ctx);
             constList.set(funcNow-1,tmpConst);
@@ -182,6 +190,17 @@ public class Visitor extends sysyBaseVisitor<Void> {
             now = pre;
         } catch (RecognitionException re) {
             System.exit(-1);
+        }
+        vis.clear();
+        idToAd.get(funcNow-1).clear();
+        constList.get(funcNow-1).clear();
+        for(String s:tmpConst.keySet())constList.get(funcNow-1).put(s,tmpConst.get(s));
+        for(String s:tmpVar.keySet())idToAd.get(funcNow-1).put(s,tmpVar.get(s));
+        for(String s:constList.get(funcNow-1).keySet()){
+            vis.put(s,1);
+        }
+        for(String s:idToAd.get(funcNow-1).keySet()){
+            vis.put(s,1);
         }
         return null;
     }
@@ -191,7 +210,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
         if(sonIsRam)System.exit(-10);
         else{
             Integer tmp=sonAns;
+            if(vis.containsKey(ctx.IDENT().getText()))System.exit(-22);
+            if(idToAd.get(funcNow-1).containsKey(ctx.IDENT().getText()))System.exit(-26);
             constList.get(funcNow-1).put(ctx.IDENT().getText(),sonAns);
+            vis.put(ctx.IDENT().getText(),1);
         }
         return null;
     }
@@ -231,6 +253,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
         String nowVar = ctx.IDENT().getText();
         HashMap<String, String> nowMap = idToAd.get(funcNow - 1);
         String newRam = randomRam();
+        if(constList.get(funcNow-1).containsKey(nowVar)){
+            System.exit(-212);
+        }
+        if(vis.containsKey(nowVar)){
+            System.exit(-23);
+        }
+        vis.put(nowVar,1);
         nowMap.put(nowVar, newRam);
         idToAd.set(funcNow - 1, nowMap);
         needAllocaRam.get(funcNow - 1).get(now).add(newRam);
@@ -242,7 +271,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 addIR("store i32 " + sonAns + " , i32 *" + newRam + "\n");
             }
         }
-
         return null;
     }
     @Override public Void visitAssignStmt(sysyParser.AssignStmtContext ctx) {
