@@ -206,11 +206,19 @@ public class Visitor extends sysyBaseVisitor<Void> {
         visitConstInitVal(ctx.constInitVal());
         if(sonIsRam)System.exit(-10);
         else{
-            Integer tmp=sonAns;
-            if(vis.containsKey(ctx.IDENT().getText()))System.exit(-22);
-            if(idToAd.get(funcNow-1).containsKey(ctx.IDENT().getText()))System.exit(-26);
-            constList.get(funcNow-1).put(ctx.IDENT().getText(),sonAns);
-            vis.put(ctx.IDENT().getText(),1);
+            if(inFuncDef) {
+                Integer tmp = sonAns;
+                if (vis.containsKey(ctx.IDENT().getText())) System.exit(-22);
+                if (idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())) System.exit(-26);
+                if(globalConst.containsKey(ctx.IDENT().getText()))System.exit(-236);
+                if(globalVar.containsKey(ctx.IDENT().getText()))System.exit(-569);
+                constList.get(funcNow - 1).put(ctx.IDENT().getText(), sonAns);
+                vis.put(ctx.IDENT().getText(), 1);
+            }else{
+                if(globalConst.containsKey(ctx.IDENT().getText()))System.exit(-236);
+                if(globalVar.containsKey(ctx.IDENT().getText()))System.exit(-569);
+                globalConst.put(ctx.IDENT().getText(),sonAns);
+            }
         }
         return null;
     }
@@ -248,23 +256,34 @@ public class Visitor extends sysyBaseVisitor<Void> {
     }
     @Override public Void visitVarDef(sysyParser.VarDefContext ctx) {
         String nowVar = ctx.IDENT().getText();
-        String newRam = randomRam();
-        if(constList.get(funcNow-1).containsKey(nowVar)){
-            System.exit(-212);
-        }
-        if(vis.containsKey(nowVar)){
-            System.exit(-23);
-        }
-        vis.put(nowVar,1);
-        if(!idToAd.get(funcNow-1).containsKey(nowVar))idToAd.get(funcNow - 1).put(nowVar,newRam);
-        else idToAd.get(funcNow-1).replace(nowVar,newRam);
-        needAllocaRam.get(funcNow - 1).get(now).add(newRam);
-        if (ctx.ASSIGN() != null) {
-            visitInitVal(ctx.initVal());
-            if (sonIsRam) {
-                addIR("store i32 " + sonRam + " , i32 *" + newRam + "\n");
-            } else {
-                addIR("store i32 " + sonAns + " , i32 *" + newRam + "\n");
+        if(inFuncDef) {
+            String newRam = randomRam();
+            if (globalConst.containsKey(nowVar)) System.exit(-365);
+            if (constList.get(funcNow - 1).containsKey(nowVar)) System.exit(-212);
+            if (vis.containsKey(nowVar)) System.exit(-23);
+            vis.put(nowVar, 1);
+            if (!idToAd.get(funcNow - 1).containsKey(nowVar)) idToAd.get(funcNow - 1).put(nowVar, newRam);
+            else idToAd.get(funcNow - 1).replace(nowVar, newRam);
+            needAllocaRam.get(funcNow - 1).get(now).add(newRam);
+            if (ctx.ASSIGN() != null) {
+                visitInitVal(ctx.initVal());
+                if (sonIsRam) {
+                    addIR("store i32 " + sonRam + " , i32 *" + newRam + "\n");
+                } else {
+                    addIR("store i32 " + sonAns + " , i32 *" + newRam + "\n");
+                }
+            }
+        }else{
+            if (globalConst.containsKey(nowVar)) System.exit(-365);
+            if(globalVar.containsKey(nowVar))System.exit(-65);
+            if (ctx.ASSIGN() != null) {
+                visitInitVal(ctx.initVal());
+                if (sonIsRam)System.exit(-648);
+                else System.out.println("@"+nowVar+" = dso_local global i32 "+sonAns);
+                globalVar.put(nowVar,sonAns);
+            }else{
+                System.out.println("@"+nowVar+" = dso_local global i32 0");
+                globalVar.put(nowVar,0);
             }
         }
         return null;
@@ -278,6 +297,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 addIR("store i32 "+sonRam+" , i32 *"+nowRam+"\n");
             }else{
                 addIR("store i32 "+sonAns+" , i32 *"+nowRam+"\n");
+            }
+        }else if(globalVar.containsKey(nowVar)){
+            visitExp(ctx.exp());
+            if(sonIsRam){
+                addIR("store i32 "+sonRam+" , i32 * @"+nowVar+"\n");
+            }else{
+                addIR("store i32 "+sonAns+" , i32 * @"+nowVar+"\n");
             }
         }else System.exit(-2);
         return null;
@@ -477,20 +503,40 @@ public class Visitor extends sysyBaseVisitor<Void> {
 
     @Override public Void visitPrimaryExp(sysyParser.PrimaryExpContext ctx){
         if(ctx.lVal()!=null){
-            if(idToAd.get(funcNow-1).containsKey(ctx.lVal().IDENT().getText())){
-                if(isConst)System.exit(-54);
-                String tmpRam=idToAd.get(funcNow-1).get(ctx.lVal().IDENT().getText());
-                String newRam =randomRam();
-                addIR(newRam+" = load i32, i32* "+tmpRam+"\n");
-                sonRam=newRam;
-                sonIsRam=true;
-            }else{
-                if(!constList.get(funcNow- 1).containsKey(ctx.lVal().IDENT().getText())) {
-                    System.exit(-3);
+            if(inFuncDef) {
+                if (idToAd.get(funcNow - 1).containsKey(ctx.lVal().IDENT().getText())) {
+                    if (isConst) System.exit(-54);
+                    String tmpRam = idToAd.get(funcNow - 1).get(ctx.lVal().IDENT().getText());
+                    String newRam = randomRam();
+                    addIR(newRam + " = load i32, i32* " + tmpRam + "\n");
+                    sonRam = newRam;
+                    sonIsRam = true;
+                } else {
+                    String nowVar=ctx.lVal().IDENT().getText();
+                    if (!constList.get(funcNow - 1).containsKey(ctx.lVal().IDENT().getText())) {
+                        if(globalConst.containsKey(nowVar)){
+                            sonIsRam=false;
+                            sonAns=globalConst.get(nowVar);
+                        }else if(globalVar.containsKey(nowVar)){
+                            String tmpRam = "@"+nowVar;
+                            String newRam = randomRam();
+                            addIR(newRam + " = load i32, i32* " + tmpRam + "\n");
+                            sonRam = newRam;
+                            sonIsRam = true;
+                        }else System.exit(-32565);
+                    } else {
+                        sonIsRam = false;
+                        sonAns = constList.get(funcNow - 1).get(ctx.lVal().IDENT().getText());
+                    }
                 }
-                else{
+            }else{
+                String nowVar=ctx.lVal().IDENT().getText();
+                if(globalVar.containsKey(nowVar)){
+                    sonIsRam=true;
+                    System.exit(-31232);
+                }else if(globalConst.containsKey(nowVar)){
                     sonIsRam=false;
-                    sonAns= constList.get(funcNow - 1).get(ctx.lVal().IDENT().getText());
+                    sonAns=globalConst.get(nowVar);
                 }
             }
         }else if(ctx.number()!=null){
