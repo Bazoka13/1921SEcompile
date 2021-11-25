@@ -697,6 +697,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         String ss=backLabel;
         String ee=exeLabel,oo=outLabel;
         String condLabel = randomBlock();
+        condLabel+="49812";
         addIR("br label %"+condLabel+"\n");
         addIR(condLabel+":\n");
         visitCond(ctx.cond());
