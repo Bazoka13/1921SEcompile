@@ -689,4 +689,20 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         return null;
     }
+    @Override public Void visitWhileStmt(sysyParser.WhileStmtContext ctx) {
+        exeLabel=randomBlock();
+        outLabel=randomBlock();
+        boolean sonret=false;
+        boolean sonret2=false;
+        String ss=backLabel;
+        String ee=exeLabel,oo=outLabel;
+        String condLabel = randomBlock();
+        addIR(condLabel+":\n");
+        visitCond(ctx.cond());
+        addIR(ee+":\n");
+        visitStmt(ctx.stmt());
+        addIR("br label %"+condLabel+"\n");
+        addIR(oo+":\n");
+        return null;
+    }
 }
