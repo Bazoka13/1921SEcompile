@@ -551,6 +551,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private String exeLabel;
     private String outLabel;
     private String backLabel;
+    private String condLabel;
     private boolean sonRet=false;
     @Override public Void visitConditionStmt(sysyParser.ConditionStmtContext ctx) {
         exeLabel=randomBlock();
@@ -576,6 +577,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
         if(!sonRet)addIR("br label "+"%"+ ss+"\n");
         sonret2=sonRet;
         sonRet=sonret&sonret2;
+        exeLabel=ee;
+        outLabel=oo;
         return null;
     }
     private List<Pair<String,String>> addList=new ArrayList<>();//son,sonLabel
@@ -696,15 +699,27 @@ public class Visitor extends sysyBaseVisitor<Void> {
         boolean sonret2=false;
         String ss=backLabel;
         String ee=exeLabel,oo=outLabel;
-        String condLabel = randomBlock();
+        condLabel = randomBlock();
         condLabel+="49812";
-        addIR("br label %"+condLabel+"\n");
-        addIR(condLabel+":\n");
+        String condd=condLabel;
+        addIR("br label %"+condd+"\n");
+        addIR(condd+":\n");
         visitCond(ctx.cond());
         addIR(ee+":\n");
         visitStmt(ctx.stmt());
-        addIR("br label %"+condLabel+"\n");
+        addIR("br label %"+condd+"\n");
         addIR(oo+":\n");
+        exeLabel=ee;
+        outLabel=oo;
+        condLabel=condd;
         return null;
+    }
+    @Override public Void visitContinueStmt(sysyParser.ContinueStmtContext ctx) {
+        addIR("br label %"+condLabel+"\n");
+        return null;
+    }
+    @Override public Void visitBreakStmt(sysyParser.BreakStmtContext ctx) {
+        addIR("br label %"+outLabel+"\n");
+        return null; 
     }
 }
