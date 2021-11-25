@@ -701,11 +701,11 @@ public class Visitor extends sysyBaseVisitor<Void> {
         boolean sonret2=false;
         String ss=backLabel;
         String ee=exeLabel,oo=outLabel;
+        condLabel = randomBlock();
+        condLabel+="49812";
         nOutLabel=outLabel;
         nCondLabel=condLabel;
         String preNO=nOutLabel,preNC=nCondLabel;
-        condLabel = randomBlock();
-        condLabel+="49812";
         String condd=condLabel;
         addIR("br label %"+condd+"\n");
         addIR(condd+":\n");
