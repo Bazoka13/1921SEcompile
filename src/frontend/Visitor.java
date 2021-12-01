@@ -1068,7 +1068,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             String tmpram;
                             addIR("store i32 "+sonAns+" , i32 * "+newRam+"\n");
                             String anoRam = randomRam();
-                            addIR(anoRam +" = load i32,i32 * "+newRam);
+                            addIR(anoRam +" = load i32,i32 * "+newRam+ "\n");
                             newRam=anoRam;
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
@@ -1096,7 +1096,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     String nowRam = randomRam();
                     addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+preRam+"\n");
                     String retRam =randomRam();
-                    addIR(retRam+" = load i32,i32 * "+nowRam);
+                    addIR(retRam+" = load i32,i32 * "+nowRam+"\n");
                     sonRam=retRam;
                 }
             }else if(constAtoId.containsKey(nowId)){
@@ -1138,7 +1138,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             String tmpram;
                             addIR("store i32 "+sonAns+" , i32 * "+newRam+"\n");
                             String anoRam = randomRam();
-                            addIR(anoRam +" = load i32,i32 * "+newRam);
+                            addIR(anoRam +" = load i32,i32 * "+newRam+ "\n");
                             newRam=anoRam;
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
@@ -1166,7 +1166,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     String nowRam = randomRam();
                     addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+preRam+"\n");
                     String retRam =randomRam();
-                    addIR(retRam+" = load i32,i32 * "+nowRam);
+                    addIR(retRam+" = load i32,i32 * "+nowRam+ "\n");
                     sonRam=retRam;
                 }
             }else System.exit(-1256);
