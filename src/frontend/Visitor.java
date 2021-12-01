@@ -1039,8 +1039,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         sonIsRam=false;
                         visitExp(ctx.exp(i));
                         if(i==0){
-                            if(sonIsRam) addIR(preRam+" = add i32 0 , "+sonAns+"\n");
-                            else addIR(preRam+" = add i32 0 , "+sonRam+"\n");
+                            if(sonIsRam) addIR(preRam+" = add i32 0 , "+sonRam+"\n");
+                            else addIR(preRam+" = add i32 0 , "+sonAns+"\n");
                             String tmpram;
                             String newRam=randomRam();
                             addIR(newRam+" = add i32 0 , "+preRam+"\n");
@@ -1109,7 +1109,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         sonIsRam=false;
                         visitExp(ctx.exp(i));
                         if(i==0){
-                            if(sonIsRam) addIR(preRam+" = add i32 0 , "+sonAns+"\n");
+                            if(!sonIsRam) addIR(preRam+" = add i32 0 , "+sonAns+"\n");
                             else addIR(preRam+" = add i32 0 , "+sonRam+"\n");
                             String tmpram;
                             String newRam=randomRam();
