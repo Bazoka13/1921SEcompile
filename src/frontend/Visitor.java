@@ -648,7 +648,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 }
             } else if (ctx.addOp(i - 1).PLUS() != null) {
                 if (sonIsRam) {
-                    String newSon=randomRam()+"1277";
+                    String newSon=randomRam();
                     if(fls==1){
                         addIR(newSon+" = add i32 "+tmp+" , "+sonRam+"\n");
                         preSon=newSon;
@@ -659,7 +659,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
-                        String newSon=randomRam()+"12354";
+                        String newSon=randomRam();
                         addIR(newSon+" = add i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp + sonAns;
@@ -888,7 +888,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             sonIsRam=false;
             visitAddExp(ctx.addExp(i));
             if(!sonIsRam){
-                sonRam=randomRam()+"21345";
+                sonRam=randomRam();
                 addIR(sonRam+"= add i32 "+sonAns+" , 0 \n");
                 sonIsRam=true;
             }
@@ -1060,7 +1060,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
-                            tmpram = randomRam()+"23456";
+                            tmpram = randomRam();
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }else{
@@ -1075,7 +1075,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
-                            tmpram = randomRam()+"45678";
+                            tmpram = randomRam();
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }
@@ -1095,7 +1095,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(iniRam+" = getelementptr ["+mul+" x i32], ["+mul+" x i32]* "+anoRam+" , i32 0, i32 0\n");
                     String nowRam = randomRam();
                     addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+preRam+"\n");
-                    sonRam=nowRam;
+                    String retRam =randomRam();
+                    addIR(retRam+" = load i32,i32 * "+nowRam);
+                    sonRam=retRam;
                 }
             }else if(constAtoId.containsKey(nowId)){
                 int pos=varAtoId.get(nowId);
@@ -1128,7 +1130,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
-                            tmpram = randomRam()+"4399";
+                            tmpram = randomRam();
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }else{
@@ -1143,7 +1145,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
-                            tmpram = randomRam()+"4587";
+                            tmpram = randomRam();
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }
@@ -1163,6 +1165,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(iniRam+" = getelementptr ["+mul+" x i32], ["+mul+" x i32]* "+anoRam+" , i32 0, i32 0\n");
                     String nowRam = randomRam();
                     addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+preRam+"\n");
+                    String retRam =randomRam();
+                    addIR(retRam+" = load i32,i32 * "+nowRam);
+                    sonRam=retRam;
                     sonRam=nowRam;
                 }
             }else System.exit(-1256);
