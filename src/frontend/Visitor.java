@@ -1168,7 +1168,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     String retRam =randomRam();
                     addIR(retRam+" = load i32,i32 * "+nowRam);
                     sonRam=retRam;
-                    sonRam=nowRam;
                 }
             }else System.exit(-1256);
         }
