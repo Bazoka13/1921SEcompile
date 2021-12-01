@@ -32,6 +32,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private ArrayList<ArrayList<Integer>> constArraySize = new ArrayList<>();//记录多维数组每维尺寸，几维直接查size就好
     private HashMap<Integer,Integer> blockId=new HashMap<>();//每个函数的当前可分配最小block编号
     private ArrayList<ArrayList<ArrayList<Integer>>> sonList = new ArrayList<>();
+    private HashMap<String,Integer> typeMap = new HashMap<>();//每个变量or常量调用什么,1arrToAd 2constArrToAd 3 varAtoId 4 constAtoId
     private HashMap<String,Integer> vis = new HashMap<>();
     private HashMap<String,Integer> globalVar = new HashMap<>();
     private HashMap<String,Integer> globalConst = new HashMap<>();
@@ -190,6 +191,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
         HashMap<String ,String> tmpVar = new HashMap<>();
         HashMap<String,String> tmpVarArr = new HashMap<>();
         HashMap<String,String> tmpConstVarArr = new HashMap<>();
+        HashMap<String,Integer> tmpVarMap = new HashMap<>();
+        HashMap<String,Integer> tmpVr = new HashMap<>();
+        HashMap<String,Integer> tmpCa = new HashMap<>();
         boolean lbr=true;
         try {
             int pre = now;
@@ -198,6 +202,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
             for(String s:constArrToAd.get(funcNow-1).keySet())tmpConstVarArr.put(s,constArrToAd.get(funcNow-1).get(s));
             for(String s:idToAd.get(funcNow-1).keySet())tmpVar.put(s,idToAd.get(funcNow-1).get(s));
             for(String s:constList.get(funcNow-1).keySet())tmpConst.put(s,constList.get(funcNow-1).get(s));
+            for(String s:typeMap.keySet())tmpVarMap.put(s,typeMap.get(s));
+            for(String s:constAtoId.keySet())tmpCa.put(s,constAtoId.get(s));
+            for(String s:varAtoId.keySet())tmpVr.put(s,varAtoId.get(s));
             now = nowBlock;
             visitChildren(ctx);
             now = pre;
@@ -209,10 +216,16 @@ public class Visitor extends sysyBaseVisitor<Void> {
         arrToAd.get(funcNow-1).clear();
         constArrToAd.get(funcNow-1).clear();
         constList.get(funcNow-1).clear();
+        typeMap.clear();
+        varAtoId.clear();
+        constAtoId.clear();
         for(String s:tmpConst.keySet())constList.get(funcNow-1).put(s,tmpConst.get(s));
         for(String s:tmpVar.keySet())idToAd.get(funcNow-1).put(s,tmpVar.get(s));
         for(String s:tmpVarArr.keySet())arrToAd.get(funcNow-1).put(s,tmpVarArr.get(s));
         for(String s:tmpConstVarArr.keySet())constArrToAd.get(funcNow-1).put(s,tmpConstVarArr.get(s));
+        for(String s:tmpVarMap.keySet())typeMap.put(s,tmpVarMap.get(s));
+        for(String s:tmpCa.keySet())constAtoId.put(s,tmpCa.get(s));
+        for(String s:tmpVr.keySet())varAtoId.put(s,tmpVr.get(s));
         for(String s:constList.get(funcNow-1).keySet()){
             vis.put(s,1);
         }
@@ -278,11 +291,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     if (globalConst.containsKey(ctx.IDENT().getText())) System.exit(-236);
                     if (globalVar.containsKey(ctx.IDENT().getText())) System.exit(-569);
                     constList.get(funcNow - 1).put(ctx.IDENT().getText(), sonAns);
+                    typeMap.put(ctx.IDENT().getText(),6);
                     vis.put(ctx.IDENT().getText(), 1);
                 } else {
                     if (globalConst.containsKey(ctx.IDENT().getText())) System.exit(-236);
                     if (globalVar.containsKey(ctx.IDENT().getText())) System.exit(-569);
                     globalConst.put(ctx.IDENT().getText(), sonAns);
+                    typeMap.put(ctx.IDENT().getText(),8);
                 }
             }
         }else{
@@ -296,6 +311,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 constArraySize.add(new ArrayList<>());
                 if(!constAtoId.containsKey(na))constAtoId.put(na,nowConst);
                 else System.exit(-12354);
+                typeMap.put(ctx.IDENT().getText(),4);
             }else{
                 if (vis.containsKey(ctx.IDENT().getText())) System.exit(-22);
                 if (idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())) System.exit(-26);
@@ -306,6 +322,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 constArraySize.add(new ArrayList<>());
                 if(!constAtoId.containsKey(na))constAtoId.put(na,nowConst);
                 else constAtoId.replace(na,nowConst);
+                typeMap.put(ctx.IDENT().getText(),2);
             }
             nowConst++;
             int nowId=constAtoId.get(na);
@@ -406,7 +423,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 return null;
             }
             int tmp = 1;
-            for (int i = depNow - 1; i < varArray.get(nowConstId).size(); i++) {
+            for (int i = depNow - 1; i < varArraySize.get(nowConstId).size(); i++) {
                 tmp *= varArraySize.get(nowConstId).get(i);
             }
             posNow += tmp * visitAss.get(depNow);
@@ -451,9 +468,12 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         addIR("store i32 " + sonAns + " , i32 *" + newRam + "\n");
                     }
                 }
+                typeMap.put(ctx.IDENT().getText(),5);
             } else {
                 if (globalConst.containsKey(nowVar)) System.exit(-365);
                 if (globalVar.containsKey(nowVar)) System.exit(-65);
+                if(constAtoId.containsKey(nowVar)) System.exit(-13);
+                if(varAtoId.containsKey(nowVar)) System.exit(-13);
                 if (ctx.ASSIGN() != null) {
                     visitInitVal(ctx.initVal());
                     if (sonIsRam) System.exit(-648);
@@ -463,19 +483,19 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     System.out.println("@" + nowVar + " = dso_local global i32 0");
                     globalVar.put(nowVar, 0);
                 }
+                typeMap.put(ctx.IDENT().getText(),7);
             }
         }else{
             inArrayDef=true;
             String na = ctx.IDENT().getText();
             if (inFuncDef) {
-                if (globalConst.containsKey(nowVar)) System.exit(-365);
                 if (constList.get(funcNow - 1).containsKey(nowVar)) System.exit(-212);
                 if (vis.containsKey(nowVar)) System.exit(-23);
-                if (constAtoId.containsKey(nowVar))System.exit(-1212);
                 varArray.add(new ArrayList<>());
                 varArraySize.add(new ArrayList<>());
                 if(!varAtoId.containsKey(na))varAtoId.put(na,nowVarId);
-                else System.exit(-12354);
+                else varAtoId.replace(na,nowVarId);
+                nowVarId++;
                 int nowId = varAtoId.get(na);
                 int n=ctx.constExp().size();
                 int mul=1;
@@ -512,10 +532,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR("store i32 "+i+", i32* "+nowRam+"\n");
                     nowpos++;
                 }
+                typeMap.put(ctx.IDENT().getText(),1);
             } else {
                 if (globalConst.containsKey(nowVar)) System.exit(-365);
                 if (globalVar.containsKey(nowVar)) System.exit(-65);
-                if (constAtoId.containsKey(nowVar))System.exit(-2626);
                 varArray.add(new ArrayList<>());
                 varArraySize.add(new ArrayList<>());
                 if(!varAtoId.containsKey(na))varAtoId.put(na,nowVarId);
@@ -552,6 +572,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 }else{
                     System.out.println("@"+na+" = dso_local global ["+mul+" x i32] zeroinitializer");
                 }
+                typeMap.put(ctx.IDENT().getText(),3);
             }
             inArrayDef=false;
         }
@@ -968,6 +989,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     }
     @Override public Void visitLVal(sysyParser.LValContext ctx) {
         if(ctx.L_BRACKT().isEmpty()) {
+            if(typeMap.get(ctx.IDENT().getText())<4)System.exit(-12354);
             if (inFuncDef) {
                 if (idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())) {
                     if (isConst) System.exit(-54);
@@ -1005,6 +1027,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 }else System.exit(-1254);
             }
         }else{
+            if(typeMap.get(ctx.IDENT().getText())>4)System.exit(-12354);
             String nowId=ctx.IDENT().getText();
             if(varAtoId.containsKey(nowId)){
                 int pos=varAtoId.get(nowId);
