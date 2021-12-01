@@ -648,7 +648,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 }
             } else if (ctx.addOp(i - 1).PLUS() != null) {
                 if (sonIsRam) {
-                    String newSon=randomRam();
+                    String newSon=randomRam()+"1277";
                     if(fls==1){
                         addIR(newSon+" = add i32 "+tmp+" , "+sonRam+"\n");
                         preSon=newSon;
@@ -659,7 +659,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     preSon=newSon;
                 } else {
                     if(preSon!="null"){
-                        String newSon=randomRam();
+                        String newSon=randomRam()+"12354";
                         addIR(newSon+" = add i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
                     }else tmp = tmp + sonAns;
@@ -888,7 +888,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             sonIsRam=false;
             visitAddExp(ctx.addExp(i));
             if(!sonIsRam){
-                sonRam=randomRam();
+                sonRam=randomRam()+"21345";
                 addIR(sonRam+"= add i32 "+sonAns+" , 0 \n");
                 sonIsRam=true;
             }
