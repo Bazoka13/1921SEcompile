@@ -1042,7 +1042,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             if(sonIsRam) addIR("store i32 " + sonRam + " , i32 *" + preRam + "\n");
                             else addIR("store i32 " + sonAns + " , i32 *" + preRam + "\n");
                             String tmpram;
-                            String newRam=preRam;
+                            String newRam=randomRam();
+                            addIR(newRam+" = load i32, i32* "+preRam+"\n");
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
@@ -1066,6 +1067,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             String newRam=randomRam();
                             String tmpram;
                             addIR("store i32 "+sonAns+" , i32 * "+newRam+"\n");
+                            String anoRam = randomRam();
+                            addIR(anoRam +" = load i32,i32 * "+newRam);
+                            newRam=anoRam;
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
@@ -1106,7 +1110,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             if(sonIsRam) addIR("store i32 " + sonRam + " , i32 *" + preRam + "\n");
                             else addIR("store i32 " + sonAns + " , i32 *" + preRam + "\n");
                             String tmpram;
-                            String newRam=preRam;
+                            String newRam=randomRam();
+                            addIR(newRam+" = load i32, i32* "+preRam+"\n");
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
@@ -1130,6 +1135,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             String newRam = randomRam();
                             String tmpram;
                             addIR("store i32 "+sonAns+" , i32 * "+newRam+"\n");
+                            String anoRam = randomRam();
+                            addIR(anoRam +" = load i32,i32 * "+newRam);
+                            newRam=anoRam;
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
