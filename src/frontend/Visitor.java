@@ -1060,7 +1060,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
-                            tmpram = randomRam();
+                            tmpram = randomRam()+"23456";
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }else{
@@ -1075,7 +1075,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
-                            tmpram = randomRam();
+                            tmpram = randomRam()+"45678";
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }
@@ -1128,7 +1128,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
-                            tmpram = randomRam();
+                            tmpram = randomRam()+"4399";
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }else{
@@ -1143,7 +1143,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
-                            tmpram = randomRam();
+                            tmpram = randomRam()+"4587";
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }
