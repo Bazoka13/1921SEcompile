@@ -806,14 +806,16 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitPrimaryExp(sysyParser.PrimaryExpContext ctx){
         if(ctx.lVal()!=null){
             visitLVal(ctx.lVal());
-            String newRam=randomRam();
-            if(sonIsRam){
-                addIR(newRam+"=load i32,i32 * "+sonRam+"\n");
-            }else{
-                addIR(newRam+"=add i32 0,"+sonAns+"\n");
+            if(!ctx.lVal().L_BRACKT().isEmpty()) {
+                String newRam = randomRam();
+                if (sonIsRam) {
+                    addIR(newRam + "=load i32,i32 * " + sonRam + "\n");
+                } else {
+                    addIR(newRam + "=add i32 0," + sonAns + "\n");
+                }
+                sonRam = newRam;
+                sonIsRam = true;
             }
-            sonRam=newRam;
-            sonIsRam=true;
         }else if(ctx.number()!=null){
             sonIsRam=false;
             visitNumber(ctx.number());
