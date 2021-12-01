@@ -808,9 +808,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
             visitLVal(ctx.lVal());
             String newRam=randomRam();
             if(sonIsRam){
-                addIR(newRam+"load i32,i32 * "+sonRam+"\n");
+                addIR(newRam+"=load i32,i32 * "+sonRam+"\n");
             }else{
-                addIR(newRam+"add i32 0,"+sonAns+"\n");
+                addIR(newRam+"=add i32 0,"+sonAns+"\n");
             }
             sonRam=newRam;
             sonIsRam=true;
