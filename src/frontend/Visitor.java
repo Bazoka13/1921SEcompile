@@ -806,6 +806,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitPrimaryExp(sysyParser.PrimaryExpContext ctx){
         if(ctx.lVal()!=null){
             visitLVal(ctx.lVal());
+            String newRam=randomRam();
+            if(sonIsRam){
+                addIR(newRam="load i32,i32 * "+sonRam+"\n");
+            }else{
+                addIR(newRam="add i32 0,"+sonAns+"\n");
+            }
+            sonRam=newRam;
+            sonIsRam=true;
         }else if(ctx.number()!=null){
             sonIsRam=false;
             visitNumber(ctx.number());
@@ -1106,9 +1114,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(iniRam+" = getelementptr ["+mul+" x i32], ["+mul+" x i32]* "+anoRam+" , i32 0, i32 0\n");
                     String nowRam = randomRam();
                     addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+preRam+"\n");
-                    String retRam =randomRam();
-                    addIR(retRam+" = load i32,i32 * "+nowRam+"\n");
-                    sonRam=retRam;
+                    sonRam=nowRam;
                 }
             }else if(constAtoId.containsKey(nowId)){
                 int pos=varAtoId.get(nowId);
@@ -1176,9 +1182,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(iniRam+" = getelementptr ["+mul+" x i32], ["+mul+" x i32]* "+anoRam+" , i32 0, i32 0\n");
                     String nowRam = randomRam();
                     addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+preRam+"\n");
-                    String retRam =randomRam();
-                    addIR(retRam+" = load i32,i32 * "+nowRam+ "\n");
-                    sonRam=retRam;
+
+                    sonRam=nowRam;
                 }
             }else System.exit(-1256);
         }
