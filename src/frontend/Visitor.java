@@ -1039,26 +1039,36 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         sonIsRam=false;
                         visitExp(ctx.exp(i));
                         if(i==0){
-                            addIR("store i32 " + sonRam + " , i32 *" + preRam + "\n");
+                            if(sonIsRam) addIR("store i32 " + sonRam + " , i32 *" + preRam + "\n");
+                            else addIR("store i32 " + sonAns + " , i32 *" + preRam + "\n");
+                            String tmpram;
+                            String newRam=preRam;
+                            for(int j=i+1;j<n;j++){
+                                tmpram=randomRam();
+                                addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
+                                newRam=tmpram;
+                            }
+                            preRam=newRam;
                             continue;
                         }
-                        String newRam=sonRam;
                         if(sonIsRam){
+                            String newRam=sonRam;
                             String tmpram;
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
-                                addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(j)+"\n");
+                                addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
                             tmpram = randomRam();
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }else{
+                            String newRam=randomRam();
                             String tmpram;
-                            addIR("store i32 "+sonAns+" , i32 * "+newRam);
+                            addIR("store i32 "+sonAns+" , i32 * "+newRam+"\n");
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
-                                addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(j)+"\n");
+                                addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
                             tmpram = randomRam();
@@ -1093,26 +1103,36 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         sonIsRam=false;
                         visitExp(ctx.exp(i));
                         if(i==0){
-                            addIR("store i32 " + sonRam + " , i32 *" + preRam + "\n");
+                            if(sonIsRam) addIR("store i32 " + sonRam + " , i32 *" + preRam + "\n");
+                            else addIR("store i32 " + sonAns + " , i32 *" + preRam + "\n");
+                            String tmpram;
+                            String newRam=preRam;
+                            for(int j=i+1;j<n;j++){
+                                tmpram=randomRam();
+                                addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
+                                newRam=tmpram;
+                            }
+                            preRam=newRam;
                             continue;
                         }
-                        String newRam=sonRam;
                         if(sonIsRam){
+                            String newRam=sonRam;
                             String tmpram;
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
-                                addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(j)+"\n");
+                                addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
                             tmpram = randomRam();
                             addIR(tmpram+" = add i32 "+preRam+" , "+newRam+"\n");
                             preRam=tmpram;
                         }else{
+                            String newRam = randomRam();
                             String tmpram;
-                            addIR("store i32 "+sonAns+" , i32 * "+newRam);
+                            addIR("store i32 "+sonAns+" , i32 * "+newRam+"\n");
                             for(int j=i+1;j<n;j++){
                                 tmpram=randomRam();
-                                addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(j)+"\n");
+                                addIR(tmpram+" = mul i32 "+newRam+" , "+constArraySize.get(pos).get(j)+"\n");
                                 newRam=tmpram;
                             }
                             tmpram = randomRam();
