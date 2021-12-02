@@ -65,7 +65,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     }
     private String randomBlock(){
         Random df = new Random();
-        int n=df.nextInt(20)+1;
+        int n=df.nextInt(10)+10;
         StringBuilder str = new StringBuilder("");
         for (int i = 0; i < n; i++) {
             if(i>0&&i<n-1){
