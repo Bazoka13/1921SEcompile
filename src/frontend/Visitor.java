@@ -1171,7 +1171,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     }
     @Override public Void visitLVal(sysyParser.LValContext ctx) {
         if(ctx.L_BRACKT().isEmpty()) {
-            if(funcPara.get(funcNow-1).paToAd.containsKey(ctx.IDENT().getText())){
+            if(funcPara.get(funcNow-1).paToAd.containsKey(ctx.IDENT().getText())&&idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())){
                 sonIsRam=true;
                 String tmpRam = idToAd.get(funcNow - 1).get(ctx.IDENT().getText());
                 String newRam = randomRam();
@@ -1220,6 +1220,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     String nowRam = randomRam();
                     addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+0+"\n");
                     sonRam=nowRam;
+                    return null;
                 } else if(constAtoId.containsKey(nowId)){
                     int pos=constAtoId.get(nowId);
                     sonIsRam=true;
@@ -1238,8 +1239,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         String nowRam = randomRam();
                         addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+0+"\n");
                         sonRam=nowRam;
+                        return null;
                     }
-                    return null;
             }
             if(typeMap.get(ctx.IDENT().getText())<4) {
                 System.exit(-1322354);
