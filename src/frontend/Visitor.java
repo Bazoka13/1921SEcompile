@@ -36,7 +36,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private HashMap<String,Integer> vis = new HashMap<>();
     private HashMap<String,Integer> globalVar = new HashMap<>();
     private HashMap<String,Integer> globalConst = new HashMap<>();
-    
+    private List<List<HashMap<String,Integer>>> needAllocaArr = new ArrayList<>();
     private List<HashMap<String, String>> arrToAd = new ArrayList<>();//变量数组到寄存器的映射
     private List<HashMap<String, String>> constArrToAd = new ArrayList<>();//常量数组到寄存器的映射
     private HashMap<String,Integer> varAtoId = new HashMap<>();//存放当前对应常量命名的数组在下面两个list的序号，记录pre并更新便于求值
@@ -94,6 +94,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
         for (String s : t) {
             System.out.println(s + " = alloca i32");
         }
+        for(String s:needAllocaArr.get(funcNow-1).get(x).keySet()){
+            System.out.println(s+" = alloca ["+needAllocaArr.get(funcNow-1).get(x).get(s)+" x i32]");
+        }
         for (int i = 0; i < tmps.size(); i++) {
             String s = tmps.get(i);
             if(s.length()>=8&&s.substring(0,8).equals("visitSon")){
@@ -124,6 +127,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             funcNow= getMpId.get(tmp);
             tmpRam.add(new ArrayList<String>());
             needAllocaRam.add(new ArrayList<>());
+            needAllocaArr.add(new ArrayList<>());
             irList.add(new ArrayList<>());
             idToAd.add(new HashMap<String,String>());
             arrToAd.add(new HashMap<>());
@@ -142,6 +146,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         System.out.print(s+'@'+ctx.IDENT().getText()+"(){\n");
         try {
             needAllocaRam.get(funcNow-1).add(new ArrayList<>());
+            needAllocaArr.get(funcNow-1).add(new HashMap<>());
             sonList.get(funcNow-1).add(new ArrayList<>());
             irList.get(funcNow-1).add(new ArrayList<>());
             fromCond=false;
@@ -187,6 +192,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         sonList.get(funcNow - 1).add(new ArrayList<>());
         sonList.get(funcNow - 1).get(now).add(nowBlock);
         needAllocaRam.get(funcNow-1).add(new ArrayList<>());
+        needAllocaArr.get(funcNow-1).add(new HashMap<>());
         fa.get(funcNow - 1).put(nowBlock, now);
         HashMap<String,Integer> tmpConst = new HashMap<>();
         HashMap<String ,String> tmpVar = new HashMap<>();
@@ -361,6 +367,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 String newRam = randomRam();
                 if (!constArrToAd.get(funcNow - 1).containsKey(na)) constArrToAd.get(funcNow - 1).put(na, newRam);
                 else constArrToAd.get(funcNow - 1).replace(na, newRam);
+                needAllocaArr.get(funcNow-1).get(now).put(newRam,mul);
                 String iniRam = randomRam();
                 addIR(iniRam+" = getelementptr ["+mul+" x i32], ["+mul+" x i32]* "+newRam+" , i32 0, i32 0\n");
                 addIR("call void @memset(i32* "+iniRam+", i32 0, i32 "+mul*4+")\n");
@@ -511,7 +518,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 String newRam = randomRam();
                 if (!arrToAd.get(funcNow - 1).containsKey(na)) arrToAd.get(funcNow - 1).put(na, newRam);
                 else arrToAd.get(funcNow - 1).replace(na, newRam);
-                addIR(newRam+" = alloca ["+mul+" x i32]\n");
+
+                needAllocaArr.get(funcNow-1).get(now).put(newRam,mul);
                 if(ctx.ASSIGN()!=null) {
                     nowConstId = nowId;
                     visitAss.clear();
