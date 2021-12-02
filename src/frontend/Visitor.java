@@ -797,7 +797,20 @@ public class Visitor extends sysyBaseVisitor<Void> {
             }else{
                 addIR("store i32 "+sonAns+" , i32 *"+newRam+"\n");
             }
-        }else System.exit(-2);
+        }else if(funcPara.get(funcNow-1).paToAd.containsKey(nowVar)){
+            visitLVal(ctx.lVal());
+            String newRam=sonRam;
+            visitExp(ctx.exp());
+            if(isVoid)System.exit(-144848);
+            if(sonIsRam){
+                addIR("store i32 "+sonRam+" , i32 *"+newRam+"\n");
+            }else{
+                addIR("store i32 "+sonAns+" , i32 *"+newRam+"\n");
+            }
+        }else{
+            System.exit(-2);
+
+        }
         return null;
     }
     @Override public Void visitReturnStmt(sysyParser.ReturnStmtContext ctx) {
@@ -810,6 +823,8 @@ public class Visitor extends sysyBaseVisitor<Void> {
             Integer tmp = sonAns;
             if (sonIsRam) addIR(sonRam + "\n");
             else addIR(tmp.toString() + "\n");
+        }else{
+            if(ctx.exp()!=null)System.exit(-584);
         }
         return null;
     }
