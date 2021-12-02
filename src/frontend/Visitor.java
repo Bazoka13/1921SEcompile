@@ -495,7 +495,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 if(sonIsRam) addIR("call void @"+ctx.IDENT().getText()+"(i32 "+sonRam+")\n");
                 else addIR("call void @"+ctx.IDENT().getText()+"(i32 "+sonAns+")\n");
             }
-        }else if(ctx.IDENT().getText()=="getarray"){
+        }else if(Objects.equals(ctx.IDENT().getText(), "getarray")){
             if(ctx.funcRParams().param().size()!=1)System.exit(-121545);
             sonIsRam=true;
             String newRam=randomRam();
@@ -504,7 +504,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             if(!sonIsRam)System.exit(-154545);
             addIR(newRam+" = call i32 @getarray(i32* "+sonRam+")\n");
             sonRam=newRam;
-        }else if(ctx.IDENT().getText()=="putarray"){
+        }else if(Objects.equals(ctx.IDENT().getText(), "putarray")){
             if(ctx.funcRParams().param().size()!=2)System.exit(-121545);
             visitExp(ctx.funcRParams().param(0).exp());
             String preRam =sonRam;
@@ -521,9 +521,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 int funcNum=getMpId.get(na);
                 params para = funcPara.get(funcNum-1);
                 String newRam = randomRam();
-                if(retMp.get(na).equals("int")){
-                    addIR(newRam+" = ");
-                }
                 ArrayList<String> tmpList= new ArrayList<>();
                 if(ctx.funcRParams()!=null) {
                     for (int i = 0; i < ctx.funcRParams().param().size(); i++) {
@@ -538,6 +535,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         }
 
                     }
+                }
+                if(retMp.get(na).equals("int")){
+                    addIR(newRam+" = ");
                 }
                 addIR("call "+retMp.get(na)+" @"+ctx.IDENT().getText()+"(");
                 for(int i=0;i<tmpList.size();i++){
