@@ -159,16 +159,18 @@ public class Visitor extends sysyBaseVisitor<Void> {
     }
 
 
-
+    private boolean isInt;
     @Override public Void visitFuncDef(sysyParser.FuncDefContext ctx) {
         inFuncDef=true;
         retType=ctx.funcType().getText();
         String s = "define dso_local ";
         if(ctx.funcType().INT_KW()!=null){
             s+="i32 ";
+            isInt=true;
         }else if(ctx.funcType().VOID_KW()!=null){
             s+="void ";
-        }
+            isInt=false;
+        }else System.exit(-1548);
         String tmp = ctx.IDENT().getText();
         retMp.put(tmp,retType);
         int pre=funcNow;
@@ -177,6 +179,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }else{
             getMpId.put(tmp, ++num);
             funcNow= getMpId.get(tmp);
+            funcPara.add(new params());
             tmpRam.add(new ArrayList<String>());
             needAllocaRam.add(new ArrayList<>());
             needAllocaPara.add(new ArrayList<>());
@@ -281,6 +284,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         needAllocaArr.get(funcNow-1).add(new HashMap<>());
         needAllocaPara.get(funcNow-1).add(new HashMap<>());
         needAllocaParaNum.get(funcNow-1).add(new HashMap<>());
+        funcPara.add(new params());
         fa.get(funcNow - 1).put(nowBlock, now);
         HashMap<String,Integer> tmpConst = new HashMap<>();
         HashMap<String ,String> tmpVar = new HashMap<>();
@@ -646,10 +650,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 typeMap.put(ctx.IDENT().getText(),7);
             }
         }else{
-            if(funcPara.get(funcNow-1).paToAd.containsKey(nowVar))System.exit(-12548);
             inArrayDef=true;
             String na = ctx.IDENT().getText();
             if (inFuncDef) {
+                if(funcPara.get(funcNow-1).paToAd.containsKey(nowVar))System.exit(-12548);
                 if (constList.get(funcNow - 1).containsKey(nowVar)) System.exit(-212);
                 if (vis.containsKey(nowVar)) System.exit(-23);
                 varArray.add(new ArrayList<>());
@@ -774,12 +778,15 @@ public class Visitor extends sysyBaseVisitor<Void> {
     }
     @Override public Void visitReturnStmt(sysyParser.ReturnStmtContext ctx) {
         //System.out.print("ret i32 ");
-        visitExp(ctx.exp());
-        //System.out.print(sonAns);
-        addIR("ret i32 ");
-        Integer tmp=sonAns;
-        if(sonIsRam)addIR(sonRam+"\n");
-        else addIR(tmp.toString()+"\n");
+        if(isInt) {
+            if(ctx.exp()==null)System.exit(-4548);
+            visitExp(ctx.exp());
+            //System.out.print(sonAns);
+            addIR("ret i32 ");
+            Integer tmp = sonAns;
+            if (sonIsRam) addIR(sonRam + "\n");
+            else addIR(tmp.toString() + "\n");
+        }
         return null;
     }
     @Override public Void visitAddExp(sysyParser.AddExpContext ctx) {
