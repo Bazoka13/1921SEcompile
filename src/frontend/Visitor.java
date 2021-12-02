@@ -1079,16 +1079,19 @@ public class Visitor extends sysyBaseVisitor<Void> {
             forPara=false;
             visitLVal(ctx.lVal());
             if(!ctx.lVal().L_BRACKT().isEmpty()) {
-                String newRam = randomRam();
-                if (sonIsRam) {
-                    addIR(newRam + "=load i32,i32 * " + sonRam + "\n");
-                } else {
-                    addIR(newRam + "=add i32 0," + sonAns + "\n");
+                if(!needArr) {
+                    String newRam = randomRam();
+                    if (sonIsRam) {
+                        addIR(newRam + "=load i32,i32 * " + sonRam + "\n");
+                    } else {
+                        addIR(newRam + "=add i32 0," + sonAns + "\n");
+                    }
+                    sonRam = newRam;
+                    sonIsRam = true;
+                }else{
+                    needArr=false;
                 }
-                sonRam = newRam;
-                sonIsRam = true;
-            }
-            if(forPara){
+            } else if(forPara){
                 if(!needArr) {
                     String newRam = randomRam();
                     if (sonIsRam) {
