@@ -44,6 +44,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private ArrayList<ArrayList<String>> varArray = new ArrayList<>();//每个多维数组被视作是一维，直接塞就好,因为是变量，所以会有寄存器
     private ArrayList<ArrayList<Integer>> varArraySize = new ArrayList<>();//记录多维数组每维尺寸，几维直接查size就好
     private ArrayList<ArrayList<HashMap<String ,String>>> needAllocaPara = new ArrayList<>();//alloca 参数
+    private ArrayList<ArrayList<HashMap<String ,String>>> needAllocaParaNum = new ArrayList<>();
     private ArrayList<params> funcPara = new ArrayList<>();//存放每个函数的参数
     private HashMap<String,String> retMp = new HashMap<>();
     private void addIR(String s){irList.get(funcNow-1).get(now).add(s);}//偷懒写个函数
@@ -104,7 +105,12 @@ public class Visitor extends sysyBaseVisitor<Void> {
             System.out.println(s+" = alloca ["+needAllocaArr.get(funcNow-1).get(x).get(s)+" x i32]");
         }
         for(String s:needAllocaPara.get(funcNow-1).get(x).keySet()){
-            System.out.println(s+" = alloca i32 * * "+needAllocaArr.get(funcNow-1).get(x).get(s));
+            System.out.println(s+" = alloca i32 * ");
+            System.out.println("store i32 * "+needAllocaPara.get(funcNow-1).get(x).get(s)+" , i32 * * "+s);
+        }
+        for(String s:needAllocaParaNum.get(funcNow-1).get(x).keySet()){
+            System.out.println(s+" = alloca i32  ");
+            System.out.println("store i32  "+needAllocaParaNum.get(funcNow-1).get(x).get(s)+" , i32  * "+s);
         }
         for (int i = 0; i < tmps.size(); i++) {
             String s = tmps.get(i);
@@ -174,6 +180,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             tmpRam.add(new ArrayList<String>());
             needAllocaRam.add(new ArrayList<>());
             needAllocaPara.add(new ArrayList<>());
+            needAllocaParaNum.add(new ArrayList<>());
             needAllocaArr.add(new ArrayList<>());
             irList.add(new ArrayList<>());
             idToAd.add(new HashMap<String,String>());
@@ -187,6 +194,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             funcPara.add(new params());
             needAllocaRam.get(funcNow-1).add(new ArrayList<>());
             needAllocaPara.get(funcNow-1).add(new HashMap<>());
+            needAllocaParaNum.get(funcNow-1).add(new HashMap<>());
             needAllocaArr.get(funcNow-1).add(new HashMap<>());
             sonList.get(funcNow-1).add(new ArrayList<>());
             irList.get(funcNow-1).add(new ArrayList<>());
@@ -209,14 +217,16 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     System.out.print("i32 " + paras.paToAd.get(na));
                     String newRam = randomRam();
                     idToAd.get(funcNow-1).put(na,newRam);
-                    needAllocaRam.get(funcNow-1).get(0).add(newRam);
+                    needAllocaParaNum.get(funcNow-1).get(0).put(newRam,paras.paToAd.get(na));
                     typeMap.put(na,5);
+                    paras.paToAd.replace(na,newRam);
                 }else {
                     System.out.print("i32 *" + paras.paToAd.get(na));
                     String newRam = randomRam();
                     arrToAd.get(funcNow-1).put(na,newRam);
-                    needAllocaPara.get(funcNow-1).get(0).put(na,newRam);
+                    needAllocaPara.get(funcNow-1).get(0).put(newRam,paras.paToAd.get(na));
                     typeMap.put(na,1);
+                    paras.paToAd.replace(na,newRam);
                 }
                 if(i<n-1) System.out.print(" , ");
             }
@@ -270,6 +280,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         needAllocaRam.get(funcNow-1).add(new ArrayList<>());
         needAllocaArr.get(funcNow-1).add(new HashMap<>());
         needAllocaPara.get(funcNow-1).add(new HashMap<>());
+        needAllocaParaNum.get(funcNow-1).add(new HashMap<>());
         fa.get(funcNow - 1).put(nowBlock, now);
         HashMap<String,Integer> tmpConst = new HashMap<>();
         HashMap<String ,String> tmpVar = new HashMap<>();
