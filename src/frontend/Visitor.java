@@ -1301,9 +1301,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 if (funcPara.get(funcNow - 1).paToAd.containsKey(ctx.IDENT().getText())
                         && idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())) {
                     sonIsRam = true;
-                /*String newRam = randomRam();
-                addIR(newRam + " = load i32, i32* " + tmpRam + "\n");
-                */
                     sonRam = idToAd.get(funcNow - 1).get(ctx.IDENT().getText());
                     forPara = true;
                     return null;
@@ -1429,6 +1426,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 else{
                         //if(!fromCallee)System.exit(-1545454);
                         int n=ctx.exp().size();
+
                         String preRam = randomRam();
                         for(int i=0;i<n;i++){
                             sonIsRam=false;
@@ -1496,6 +1494,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     else{
                         //if(!fromCallee)System.exit(-1545454);
                         int n=ctx.exp().size();
+                        int nn=varArraySize.get(pos).size();
                         String preRam = randomRam();
                         for(int i=0;i<n;i++){
                             sonIsRam=false;
@@ -1506,7 +1505,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 String tmpram;
                                 String newRam=randomRam();
                                 addIR(newRam+" = add i32 0 , "+preRam+"\n");
-                                for(int j=i+1;j<n;j++){
+                                for(int j=i+1;j<nn;j++){
                                     tmpram=randomRam();
                                     addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                     newRam=tmpram;
@@ -1517,7 +1516,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             if(sonIsRam){
                                 String newRam=sonRam;
                                 String tmpram;
-                                for(int j=i+1;j<n;j++){
+                                for(int j=i+1;j<nn;j++){
                                     tmpram=randomRam();
                                     addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                     newRam=tmpram;
@@ -1532,7 +1531,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 String anoRam = randomRam();
                                 addIR(anoRam +" = add i32 "+0+" , "+newRam+"\n");
                                 newRam=anoRam;
-                                for(int j=i+1;j<n;j++){
+                                for(int j=i+1;j<nn;j++){
                                     tmpram=randomRam();
                                     addIR(tmpram+" = mul i32 "+newRam+" , "+varArraySize.get(pos).get(j)+"\n");
                                     newRam=tmpram;
