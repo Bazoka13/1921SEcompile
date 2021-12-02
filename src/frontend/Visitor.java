@@ -210,16 +210,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }catch (RecognitionException re){
             System.exit(-1);
         }
+        HashMap<String,Integer> tmpVarMap=new HashMap<>();
+        HashMap<String,String> tmpVarArr = new HashMap<>();
+        HashMap<String,String> tmpVar = new HashMap<>();
         if(ctx.funcFParams()==null)System.out.print(s+'@'+ctx.IDENT().getText()+"(){\n");
         else{
-
-            HashMap<String,Integer> tmpVarMap=new HashMap<>();
-            HashMap<String,String> tmpVarArr = new HashMap<>();
-            HashMap<String,String> tmpVar = new HashMap<>();
             for(String ss:typeMap.keySet())tmpVarMap.put(ss,typeMap.get(ss));
             for(String ss:arrToAd.get(funcNow-1).keySet())tmpVarArr.put(ss,arrToAd.get(funcNow-1).get(ss));
             for(String ss:idToAd.get(funcNow-1).keySet())tmpVar.put(ss,idToAd.get(funcNow-1).get(ss));
-
             visitFuncFParams(ctx.funcFParams());
             System.out.print(s+'@'+ctx.IDENT().getText()+"(");
             int n=funcPara.get(funcNow-1).paramList.size();
@@ -244,12 +242,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 if(i<n-1) System.out.print(" , ");
             }
             System.out.print("){\n");
-            typeMap.clear();
-            arrToAd.get(funcNow-1).clear();
-            idToAd.get(funcNow-1).clear();
-            for(String ss:tmpVarMap.keySet())typeMap.put(ss,tmpVarMap.get(ss));
-            for(String ss:tmpVarArr.keySet())arrToAd.get(funcNow-1).put(ss,tmpVarArr.get(ss));
-            for(String ss:tmpVar.keySet())idToAd.get(funcNow-1).put(ss,tmpVar.get(ss));
+
         }
         try {
             visitBlock(ctx.block());
@@ -265,11 +258,20 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }catch (RecognitionException re){
             System.exit(-1);
         }
+        if(ctx.funcFParams()!=null){
+            typeMap.clear();
+            arrToAd.get(funcNow - 1).clear();
+            idToAd.get(funcNow - 1).clear();
+            for (String ss : tmpVarMap.keySet()) typeMap.put(ss, tmpVarMap.get(ss));
+            for (String ss : tmpVarArr.keySet()) arrToAd.get(funcNow - 1).put(ss, tmpVarArr.get(ss));
+            for (String ss : tmpVar.keySet()) idToAd.get(funcNow - 1).put(ss, tmpVar.get(ss));
+        }
         funcNow=pre;
         if(ctx.funcType().VOID_KW()!=null){
             System.out.println("ret void");
         }
         System.out.print("}\n");
+
         inFuncDef=false;
         return null;
     }
