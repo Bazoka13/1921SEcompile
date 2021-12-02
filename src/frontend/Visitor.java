@@ -375,7 +375,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 return null;
             }
             int tmp=1;
-            for(int i=depNow-1;i<constArray.get(nowConstId).size();i++){
+            for(int i=depNow-1;i<constArraySize.get(nowConstId).size();i++){
                 tmp*=constArraySize.get(nowConstId).get(i);
             }
             posNow+=tmp* visitAss.get(depNow);
@@ -1277,15 +1277,17 @@ public class Visitor extends sysyBaseVisitor<Void> {
     }
     @Override public Void visitLVal(sysyParser.LValContext ctx) {
         if(ctx.L_BRACKT().isEmpty()) {
-            if(funcPara.get(funcNow-1).paToAd.containsKey(ctx.IDENT().getText())&&idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())){
-
-                sonIsRam=true;
+            if(inFuncDef){
+                if (funcPara.get(funcNow - 1).paToAd.containsKey(ctx.IDENT().getText())
+                        && idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())) {
+                    sonIsRam = true;
                 /*String newRam = randomRam();
                 addIR(newRam + " = load i32, i32* " + tmpRam + "\n");
                 */
-                sonRam = idToAd.get(funcNow - 1).get(ctx.IDENT().getText());
-                forPara=true;
-                return null;
+                    sonRam = idToAd.get(funcNow - 1).get(ctx.IDENT().getText());
+                    forPara = true;
+                    return null;
+                }
             }
             if(fromCallee){
                 if(funcPara.get(funcNow-1).paToAd.containsKey(ctx.IDENT().getText())){
