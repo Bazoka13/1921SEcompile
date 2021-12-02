@@ -539,7 +539,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 if(retMp.get(na).equals("int")){
                     addIR(newRam+" = ");
                 }
-                addIR("call "+retMp.get(na)+" @"+ctx.IDENT().getText()+"(");
+                String ss= "i32";
+                if(!retMp.get(na).equals("int"))ss="void";
+                addIR("call "+ss+" @"+ctx.IDENT().getText()+"(");
                 for(int i=0;i<tmpList.size();i++){
                     if (para.paramList.get(i).getType() == 0) {
                         addIR("i32 "+tmpList.get(i));
