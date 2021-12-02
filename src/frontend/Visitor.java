@@ -263,11 +263,11 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         if(ctx.funcFParams()!=null){
             typeMap.clear();
-            /*arrToAd.get(funcNow - 1).clear();
-            idToAd.get(funcNow - 1).clear();*/
+            arrToAd.get(funcNow - 1).clear();
+            idToAd.get(funcNow - 1).clear();
             for (String ss : tmpVarMap.keySet()) typeMap.put(ss, tmpVarMap.get(ss));
-            /*for (String ss : tmpVarArr.keySet()) arrToAd.get(funcNow - 1).put(ss, tmpVarArr.get(ss));
-            for (String ss : tmpVar.keySet()) idToAd.get(funcNow - 1).put(ss, tmpVar.get(ss));*/
+            for (String ss : tmpVarArr.keySet()) arrToAd.get(funcNow - 1).put(ss, tmpVarArr.get(ss));
+            for (String ss : tmpVar.keySet()) idToAd.get(funcNow - 1).put(ss, tmpVar.get(ss));
         }
         funcNow=pre;
         if(ctx.funcType().VOID_KW()!=null){
@@ -535,8 +535,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
             sonRam=newRam;
         }else if(Objects.equals(ctx.IDENT().getText(), "putarray")){
             if(ctx.funcRParams().param().size()!=2)System.exit(-121545);
+            sonIsRam=false;
             visitExp(ctx.funcRParams().param(0).exp());
             String preRam =sonRam;
+            if(!sonIsRam)preRam=Integer.toString(sonAns);
             sonIsRam=false;
             visitExp(ctx.funcRParams().param(1).exp());
             if(!sonIsRam)System.exit(-154545);
@@ -1058,8 +1060,10 @@ public class Visitor extends sysyBaseVisitor<Void> {
         return null;
     }
 
+    private boolean forPara;
     @Override public Void visitPrimaryExp(sysyParser.PrimaryExpContext ctx){
         if(ctx.lVal()!=null){
+            forPara=false;
             visitLVal(ctx.lVal());
             if(!ctx.lVal().L_BRACKT().isEmpty()) {
                 String newRam = randomRam();
@@ -1067,6 +1071,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(newRam + "=load i32,i32 * " + sonRam + "\n");
                 } else {
                     addIR(newRam + "=add i32 0," + sonAns + "\n");
+                }
+                sonRam = newRam;
+                sonIsRam = true;
+            }
+            if(forPara){
+                String newRam = randomRam();
+                if (sonIsRam) {
+                    addIR(newRam + "=load i32,i32 * " + sonRam + "\n");
                 }
                 sonRam = newRam;
                 sonIsRam = true;
@@ -1265,11 +1277,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
     @Override public Void visitLVal(sysyParser.LValContext ctx) {
         if(ctx.L_BRACKT().isEmpty()) {
             if(funcPara.get(funcNow-1).paToAd.containsKey(ctx.IDENT().getText())&&idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())){
+
                 sonIsRam=true;
-                String tmpRam = idToAd.get(funcNow - 1).get(ctx.IDENT().getText());
-                String newRam = randomRam();
+                /*String newRam = randomRam();
                 addIR(newRam + " = load i32, i32* " + tmpRam + "\n");
-                sonRam = newRam;
+                */
+                sonRam = idToAd.get(funcNow - 1).get(ctx.IDENT().getText());
+                forPara=true;
                 return null;
             }
             if(fromCallee){
