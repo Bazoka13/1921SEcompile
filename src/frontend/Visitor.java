@@ -45,7 +45,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
     private void addIR(String s){irList.get(funcNow-1).get(now).add(s);}//偷懒写个函数
     private String getRandRam(){
         Random df = new Random();
-        int n=df.nextInt(10)+1;
+        int n=df.nextInt(10)+5;
         StringBuilder str = new StringBuilder("%");
         for (int i = 0; i < n; i++) {
             str.append((char) (Math.random() * 26 + 'a'));
