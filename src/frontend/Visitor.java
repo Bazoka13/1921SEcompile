@@ -371,6 +371,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 visitAss.replace(depNow,tmpp+1);
             }else visitAss.put(depNow,0);
             if(ctx.constInitVal().isEmpty()) {
+                for(int i=depNow+1;i<100;i++){
+                    visitAss.remove(i);
+                }
                 depNow--;
                 return null;
             }
@@ -385,6 +388,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
             }
             for(int i=0;i<ctx.constInitVal().size();i++)visitConstInitVal(ctx.constInitVal(i));
             posNow-=tmp*visitAss.get(depNow);
+            for(int i=depNow+1;i<100;i++){
+                visitAss.remove(i);
+            }
             depNow--;
         }else{
             if(inArrayDef){
@@ -542,7 +548,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
             sonIsRam=false;
             visitExp(ctx.funcRParams().param(1).exp());
             if(!sonIsRam)System.exit(-154545);
-            //call void @putarray(i32 %34, i32* %38)
             sonIsRam=false;
             addIR("call void @putarray(i32 "+preRam+", i32* "+sonRam+")\n");
             isVoid=true;
@@ -637,6 +642,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 int tmpp = visitAss.get(depNow);
             }
             if(ctx.initVal().isEmpty()){
+                for(int i=depNow+1;i<100;i++){
+                    visitAss.remove(i);
+                }
                 depNow--;
                 return null;
             }
@@ -651,6 +659,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
             }
             for (int i = 0; i < ctx.initVal().size(); i++) visitInitVal(ctx.initVal(i));
             posNow -= tmp * visitAss.get(depNow);
+            for(int i=depNow+1;i<100;i++){
+                visitAss.remove(i);
+            }
             depNow--;
         }else{
             if(inArrayDef){
