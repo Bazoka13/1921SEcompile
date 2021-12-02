@@ -506,7 +506,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         return null;
     }
 
-
+    private boolean needArr;
     @Override public Void visitCallee(sysyParser.CalleeContext ctx) {
         boolean preCallee=fromCallee;
         fromCallee=true;
@@ -546,11 +546,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
             String preRam =sonRam;
             if(!sonIsRam)preRam=Integer.toString(sonAns);
             sonIsRam=false;
+            needArr=true;
             visitExp(ctx.funcRParams().param(1).exp());
             if(!sonIsRam)System.exit(-154545);
             sonIsRam=false;
             addIR("call void @putarray(i32 "+preRam+", i32* "+sonRam+")\n");
             isVoid=true;
+            needArr=false;
         }else{
             if(!getMpId.containsKey(ctx.IDENT().getText()))System.exit(-44848);
             else{
@@ -567,6 +569,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             if(sonIsRam)tmpList.add(sonRam);
                             else tmpList.add(Integer.toString(sonAns));
                         } else {
+                            needArr=true;
                             String s = ctx.funcRParams().param(i).getText();
                             String t="";
                             int cnt=0;
@@ -593,6 +596,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             }
                             if(sonIsRam)tmpList.add(sonRam);
                             else System.exit(-15458);
+                            needArr=false;
                         }
 
                     }
@@ -846,7 +850,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 addIR("store i32 "+sonAns+" , i32 *"+nowRam+"\n");
             }
         }else if(globalVar.containsKey(nowVar)){
-
             if(typeMap.get(nowVar)!=7)System.exit(-164);
             visitExp(ctx.exp());
             if(isVoid)System.exit(-144848);
@@ -868,7 +871,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
             }
         }else{
             System.exit(-2);
-
         }
         return null;
     }
@@ -1087,13 +1089,17 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 sonIsRam = true;
             }
             if(forPara){
-                String newRam = randomRam();
-                if (sonIsRam) {
-                    addIR(newRam + "=load i32,i32 * " + sonRam + "\n");
+                if(!needArr) {
+                    String newRam = randomRam();
+                    if (sonIsRam) {
+                        addIR(newRam + "=load i32,i32 * " + sonRam + "\n");
+                    }
+                    sonRam = newRam;
+                    sonIsRam = true;
+                    forPara = false;
+                }else{
+                   needArr=false;
                 }
-                sonRam = newRam;
-                sonIsRam = true;
-                forPara=false;
             }
         }else if(ctx.number()!=null){
             sonIsRam=false;
