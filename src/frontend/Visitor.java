@@ -210,11 +210,13 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     String newRam = randomRam();
                     idToAd.get(funcNow-1).put(na,newRam);
                     needAllocaRam.get(funcNow-1).get(0).add(newRam);
+                    typeMap.put(na,5);
                 }else {
                     System.out.print("i32 *" + paras.paToAd.get(na));
                     String newRam = randomRam();
                     arrToAd.get(funcNow-1).put(na,newRam);
                     needAllocaPara.get(funcNow-1).get(0).put(na,newRam);
+                    typeMap.put(na,1);
                 }
                 if(i<n-1) System.out.print(" , ");
             }
@@ -392,7 +394,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 constArray.add(new ArrayList<>());
                 constArraySize.add(new ArrayList<>());
                 if(!constAtoId.containsKey(na))constAtoId.put(na,nowConst);
-                else System.exit(-12354);
+                else System.exit(-12354213);
                 typeMap.put(ctx.IDENT().getText(),4);
             }else{
                 if (vis.containsKey(ctx.IDENT().getText())) System.exit(-22);
@@ -511,20 +513,29 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 if(retMp.get(na).equals("int")){
                     addIR(newRam+" = ");
                 }
-                addIR("call "+retMp.get(na)+" @"+ctx.IDENT().getText()+"(");
+                ArrayList<String> tmpList= new ArrayList<>();
                 if(ctx.funcRParams()!=null) {
                     for (int i = 0; i < ctx.funcRParams().param().size(); i++) {
                         sonIsRam = false;
                         visitExp(ctx.funcRParams().param(i).exp());
                         if (para.paramList.get(i).getType() == 0) {
-                            if (sonIsRam) addIR("i32 " + sonRam);
-                            else addIR("i32 " + sonAns);
+                            if(sonIsRam)tmpList.add(sonRam);
+                            else tmpList.add(Integer.toString(sonAns));
                         } else {
-                            if (sonIsRam) addIR("i32 * " + sonRam);
+                            if(sonIsRam)tmpList.add(sonRam);
                             else System.exit(-15458);
                         }
-                        if (i < ctx.funcRParams().param().size() - 1) addIR(",");
+
                     }
+                }
+                addIR("call "+retMp.get(na)+" @"+ctx.IDENT().getText()+"(");
+                for(int i=0;i<tmpList.size();i++){
+                    if (para.paramList.get(i).getType() == 0) {
+                        addIR("i32 "+tmpList.get(i));
+                    } else {
+                        addIR("i32 * "+tmpList.get(i));
+                    }
+                    if (i < tmpList.size() - 1) addIR(",");
                 }
                 addIR(")\n");
                 if(retMp.get(na).equals("int")){
@@ -677,7 +688,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 varArray.add(new ArrayList<>());
                 varArraySize.add(new ArrayList<>());
                 if(!varAtoId.containsKey(na))varAtoId.put(na,nowVarId);
-                else System.exit(-12354);
+                else System.exit(-123541231);
                 nowVarId++;
                 int nowId = varAtoId.get(na);
                 int n=ctx.constExp().size();
@@ -807,7 +818,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(newSon+" = add i32 "+preSon+" , "+sonRam+"\n");
                     preSon=newSon;
                 } else {
-                    if(preSon!="null"){
+                    if(!Objects.equals(preSon, "null")){
                         String newSon=randomRam();
                         addIR(newSon+" = add i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
@@ -817,7 +828,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 System.exit(-5);
             }
         }
-        if(preSon!="null"){
+        if(!Objects.equals(preSon, "null")){
             sonRam=preSon;
             sonIsRam=true;
             return null;
@@ -856,7 +867,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(newSon+" = sdiv i32 "+preSon+" , "+sonRam+"\n");
                     preSon=newSon;
                 } else {
-                    if(preSon!="null"){
+                    if(!Objects.equals(preSon, "null")){
                         String newSon=randomRam();
                         addIR(newSon+" = sdiv i32 "+preSon+" , "+sonAns+"\n");
                         preSon=newSon;
@@ -1155,7 +1166,71 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 sonRam = newRam;
                 return null;
             }
-            if(typeMap.get(ctx.IDENT().getText())<4)System.exit(-12354);
+            if(fromCallee){
+                if(funcPara.get(funcNow-1).paToAd.containsKey(ctx.IDENT().getText())){
+                    String nowId=ctx.IDENT().getText();
+                    int pos=-1;
+                    for(int i=0;i<funcPara.get(funcNow-1).paramList.size();i++){
+                        if(Objects.equals(funcPara.get(funcNow - 1).paramList.get(i).getNa(), nowId)
+                                &&funcPara.get(funcNow-1).paramList.get(i).getType()==1){
+                            pos=i;
+                            break;
+                        }
+                    }
+                    if(pos==-1) {
+                        System.exit(-1545);
+                    }
+                    sonIsRam=true;
+                    String nowRam=randomRam();
+                    String iniRam=randomRam();
+                    addIR(iniRam+" = load i32* , i32* * "+funcPara.get(funcNow-1).paToAd.get(nowId)+"\n");
+                    addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+0+"\n");
+                    sonRam=nowRam;
+                    return null;
+                }
+                String nowId=ctx.IDENT().getText();
+                if(varAtoId.containsKey(nowId)){
+                    int pos=varAtoId.get(nowId);
+                    sonIsRam=true;
+                    int mul=1;
+                    for(int i=0;i<varArraySize.get(pos).size();i++){
+                        mul*=varArraySize.get(pos).get(i);
+                    }
+                    String iniRam=randomRam();
+                    String anoRam;
+                    if(arrToAd.get(funcNow-1).containsKey(nowId)) {
+                        anoRam = arrToAd.get(funcNow - 1).get(nowId);
+                    }else{
+                        anoRam="@"+nowId;
+                    }
+                    addIR(iniRam+" = getelementptr ["+mul+" x i32], ["+mul+" x i32]* "+anoRam+" , i32 0, i32 0\n");
+                    String nowRam = randomRam();
+                    addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+0+"\n");
+                    sonRam=nowRam;
+                } else if(constAtoId.containsKey(nowId)){
+                    int pos=constAtoId.get(nowId);
+                    sonIsRam=true;
+                    int mul=1;
+                    for(int i=0;i<constArraySize.get(pos).size();i++){
+                            mul*=constArraySize.get(pos).get(i);
+                        }
+                        String iniRam=randomRam();
+                        String anoRam;
+                        if(constArrToAd.get(funcNow-1).containsKey(nowId)){
+                            anoRam=constArrToAd.get(funcNow-1).get(nowId);
+                        }else{
+                            anoRam="@"+nowId;
+                        }
+                        addIR(iniRam+" = getelementptr ["+mul+" x i32], ["+mul+" x i32]* "+anoRam+" , i32 0, i32 0\n");
+                        String nowRam = randomRam();
+                        addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+0+"\n");
+                        sonRam=nowRam;
+                    }
+                    return null;
+            }
+            if(typeMap.get(ctx.IDENT().getText())<4) {
+                System.exit(-1322354);
+            }
             if (inFuncDef) {
                 if (idToAd.get(funcNow - 1).containsKey(ctx.IDENT().getText())) {
                     if (isConst) System.exit(-54);
@@ -1197,16 +1272,18 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 String nowId=ctx.IDENT().getText();
                 int pos=-1;
                 for(int i=0;i<funcPara.get(funcNow-1).paramList.size();i++){
-                    if(funcPara.get(funcNow-1).paramList.get(i).getNa()==nowId
+                    if(Objects.equals(funcPara.get(funcNow - 1).paramList.get(i).getNa(), nowId)
                             &&funcPara.get(funcNow-1).paramList.get(i).getType()==1){
                         pos=i;
                         break;
                     }
                 }
-                if(pos==-1)System.exit(-1545);
-                if(ctx.L_BRACKT().size()>funcPara.get(funcNow-1).paramList.get(pos).arrSize.size())System.exit(-1545484);
-                    else{
-                        if(!fromCallee)System.exit(-1545454);
+                if(pos==-1) {
+                    System.exit(-1545);
+                }
+                if(ctx.L_BRACKT().size()>funcPara.get(funcNow-1).paramList.get(pos).arrSize.size()+1)System.exit(-1545484);
+                else{
+                        //if(!fromCallee)System.exit(-1545454);
                         int n=ctx.exp().size();
                         String preRam = randomRam();
                         for(int i=0;i<n;i++){
@@ -1266,14 +1343,14 @@ public class Visitor extends sysyBaseVisitor<Void> {
                         return null;
                     }
             }
-            if(typeMap.get(ctx.IDENT().getText())>4)System.exit(-12354);
+            if(typeMap.get(ctx.IDENT().getText())>4)System.exit(-1235434);
             String nowId=ctx.IDENT().getText();
             if(varAtoId.containsKey(nowId)){
                 int pos=varAtoId.get(nowId);
                 if(ctx.L_BRACKT().size()!=varArraySize.get(pos).size()){
                     if(ctx.L_BRACKT().size()>varArraySize.get(pos).size())System.exit(-1545484);
                     else{
-                        if(!fromCallee)System.exit(-1545454);
+                        //if(!fromCallee)System.exit(-1545454);
                         int n=ctx.exp().size();
                         String preRam = randomRam();
                         for(int i=0;i<n;i++){
@@ -1404,7 +1481,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     sonRam=nowRam;
                 }
             }else if(constAtoId.containsKey(nowId)){
-                int pos=varAtoId.get(nowId);
+                int pos=constAtoId.get(nowId);
                 if(ctx.L_BRACKT().size()!=constArraySize.get(pos).size())System.exit(-5486);
                 else{
                     int n=ctx.exp().size();
@@ -1469,7 +1546,6 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     addIR(iniRam+" = getelementptr ["+mul+" x i32], ["+mul+" x i32]* "+anoRam+" , i32 0, i32 0\n");
                     String nowRam = randomRam();
                     addIR(nowRam+" = getelementptr i32, i32* "+iniRam+", i32 "+preRam+"\n");
-
                     sonRam=nowRam;
                 }
             }else System.exit(-1256);
