@@ -95,6 +95,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         return null;
     }
+    private boolean printRet;
     private String retType;
     private boolean retPrinted;
     private void printBlock(int x) {
@@ -123,6 +124,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 printBlock(num);
             }else {
                 if(s.startsWith("ret")){
+                    printRet=true;
                     if(!Objects.equals(retType, "int")){
                         if(!s.contains("void"))System.exit(-155454);
                     }else{
@@ -254,17 +256,18 @@ public class Visitor extends sysyBaseVisitor<Void> {
                     irList.get(funcNow-1).get(0).add("visitSon"+i);
                 }
             }
+            printRet = false;
             printBlock(0);
         }catch (RecognitionException re){
             System.exit(-1);
         }
         if(ctx.funcFParams()!=null){
             typeMap.clear();
-            arrToAd.get(funcNow - 1).clear();
-            idToAd.get(funcNow - 1).clear();
+            /*arrToAd.get(funcNow - 1).clear();
+            idToAd.get(funcNow - 1).clear();*/
             for (String ss : tmpVarMap.keySet()) typeMap.put(ss, tmpVarMap.get(ss));
-            for (String ss : tmpVarArr.keySet()) arrToAd.get(funcNow - 1).put(ss, tmpVarArr.get(ss));
-            for (String ss : tmpVar.keySet()) idToAd.get(funcNow - 1).put(ss, tmpVar.get(ss));
+            /*for (String ss : tmpVarArr.keySet()) arrToAd.get(funcNow - 1).put(ss, tmpVarArr.get(ss));
+            for (String ss : tmpVar.keySet()) idToAd.get(funcNow - 1).put(ss, tmpVar.get(ss));*/
         }
         funcNow=pre;
         if(ctx.funcType().VOID_KW()!=null){
@@ -868,6 +871,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
             else addIR(tmp.toString() + "\n");
         }else{
             if(ctx.exp()!=null)System.exit(-584);
+            addIR("ret void \n");
         }
         return null;
     }
