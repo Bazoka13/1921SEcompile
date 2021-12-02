@@ -1082,6 +1082,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                 }
                 sonRam = newRam;
                 sonIsRam = true;
+                forPara=false;
             }
         }else if(ctx.number()!=null){
             sonIsRam=false;
