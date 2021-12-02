@@ -99,13 +99,12 @@ public class Visitor extends sysyBaseVisitor<Void> {
         }
         for (int i = 0; i < tmps.size(); i++) {
             String s = tmps.get(i);
-            if(s.length()>=8&&s.substring(0,8).equals("visitSon")){
-                int len=s.length();
+            int len=s.length();
+            if(s.startsWith("visitSon")){
                 String ss=s.substring(8,len);
                 int num=Integer.parseInt(ss);
                 printBlock(num);
             }else {
-                int len=s.length();
                 System.out.print(s);
             }
         }
@@ -985,26 +984,25 @@ public class Visitor extends sysyBaseVisitor<Void> {
         outLabel=randomBlock();
         boolean sonret=false;
         boolean sonret2=false;
-        String ss=backLabel;
-        String ee=exeLabel,oo=outLabel;
+        String ee=String.valueOf(exeLabel),oo=String.valueOf(outLabel);
+        String preNO=String.valueOf(nOutLabel);
+        String preNC= nCondLabel;
         condLabel = randomBlock();
-        condLabel+="49812";
-        nOutLabel=outLabel;
+        nOutLabel=String.valueOf(outLabel);
         nCondLabel=condLabel;
-        String preNO=nOutLabel,preNC=nCondLabel;
-        String condd=condLabel;
+        String condd= condLabel;
         addIR("br label %"+condd+"\n");
         addIR(condd+":\n");
         visitCond(ctx.cond());
         addIR(ee+":\n");
         visitStmt(ctx.stmt());
         addIR("br label %"+condd+"\n");
-        addIR(oo+":\n");
-        exeLabel=ee;
-        outLabel=oo;
-        condLabel=condd;
-        nOutLabel=preNO;
-        nCondLabel=preNC;
+        addIR(oo+":"+"\n");
+        exeLabel=String.valueOf(ee);
+        outLabel=String.valueOf(oo);
+        condLabel=String.valueOf(condd);
+        nOutLabel=String.valueOf(preNO);
+        nCondLabel=String.valueOf(preNC);
         return null;
     }
     @Override public Void visitContinueStmt(sysyParser.ContinueStmtContext ctx) {
