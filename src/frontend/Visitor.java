@@ -1401,7 +1401,7 @@ public class Visitor extends sysyBaseVisitor<Void> {
                                 for(int j=i+1;j<n;j++){
                                     tmpram=randomRam();
                                     addIR(tmpram+" = mul i32 "+newRam+" , "+
-                                            funcPara.get(funcNow-1).paramList.get(pos).arrSize.get(j)+"\n");
+                                            funcPara.get(funcNow-1).paramList.get(pos).arrSize.get(j-1)+"\n");
                                     newRam=tmpram;
                                 }
                                 preRam=newRam;
