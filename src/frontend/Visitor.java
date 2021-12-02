@@ -85,7 +85,9 @@ public class Visitor extends sysyBaseVisitor<Void> {
         try {
             System.out.println("declare i32 @getint()\n" +
                     "declare void @putint(i32)\ndeclare i32 @getch()\n" +
-                    "declare void @putch(i32)\ndeclare void @memset(i32*, i32, i32)");
+                    "declare void @putch(i32)\ndeclare void @memset(i32*, i32, i32)\n" +
+                    "declare i32 @getarray(i32*)\n" +
+                    "declare void @putarray(i32, i32*)");
             visitChildren(ctx);
 
         }catch (RecognitionException re){
@@ -539,6 +541,30 @@ public class Visitor extends sysyBaseVisitor<Void> {
                             if(sonIsRam)tmpList.add(sonRam);
                             else tmpList.add(Integer.toString(sonAns));
                         } else {
+                            String s = ctx.funcRParams().param(i).getText();
+                            String t="";
+                            int cnt=0;
+                            if(s.contains("[")){
+                                for(int j=0;j<s.length();j++){
+                                    if(s.charAt(j)=='[')break;
+                                    t+=s.charAt(j);
+                                }
+                                for(int j=0;j<s.length();j++){
+                                    if(s.charAt(j)=='[')cnt++;
+                                }
+                                s=t;
+                            }
+                            if(varAtoId.containsKey(s)){
+                                int pos =varAtoId.get(s);
+                                param tmp =para.paramList.get(i);
+                                if(varArraySize.get(pos).size()<tmp.arrSize.size()+1)System.exit(-1545);
+                                if(varArraySize.get(pos).size()-cnt!=tmp.arrSize.size()+1)System.exit(-1545);
+                                for(int j=0;j<tmp.arrSize.size();j++){
+                                    if(!Objects.equals(varArraySize.get(pos).get(j + 1 + cnt), tmp.arrSize.get(pos))){
+                                        System.exit(-4548848);
+                                    }
+                                }
+                            }
                             if(sonIsRam)tmpList.add(sonRam);
                             else System.exit(-15458);
                         }
